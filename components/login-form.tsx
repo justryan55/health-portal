@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -38,6 +38,7 @@ export function LoginForm({
   });
   const [authError, setAuthError] = useState("");
   const pathname = usePathname();
+  const router = useRouter();
 
   const formSchema = z
     .object({
@@ -80,7 +81,6 @@ export function LoginForm({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const supabase = await createClient();
-    console.log(supabase);
     try {
       if (pathname === "/auth/register") {
         const { data, error } = await supabase.auth.signUp({
@@ -94,7 +94,10 @@ export function LoginForm({
           setTimeout(() => {
             setAuthError("");
           }, 2000);
+          return;
         }
+
+        router.push("/login");
       }
 
       if (pathname === "/auth/login") {
@@ -103,15 +106,16 @@ export function LoginForm({
           password: values.password,
         });
 
-        console.log(data);
-
         if (error) {
           setAuthError(error.message);
 
           setTimeout(() => {
             setAuthError("");
           }, 2000);
+          return;
         }
+
+        router.push("/dashboard");
       }
     } catch (err) {
       console.log(err);
