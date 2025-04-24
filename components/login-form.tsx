@@ -42,6 +42,12 @@ export function LoginForm({
 
   const formSchema = z
     .object({
+      ...(pathname === "/auth/register" && {
+        fullName: z
+          .string()
+          .min(2, "Full name must be at least 2 characters.")
+          .trim(),
+      }),
       email: z
         .string()
         .email({ message: "Please enter a valid email." })
@@ -73,6 +79,7 @@ export function LoginForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      fullName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -80,12 +87,18 @@ export function LoginForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const supabase = await createClient();
+    const supabase = createClient();
+
     try {
       if (pathname === "/auth/register") {
         const { data, error } = await supabase.auth.signUp({
           email: values.email,
           password: values.password,
+          options: {
+            data: {
+              display_name: values.fullName,
+            },
+          },
         });
 
         if (error) {
@@ -108,6 +121,7 @@ export function LoginForm({
 
         if (error) {
           setAuthError(error.message);
+          console.log("2");
 
           setTimeout(() => {
             setAuthError("");
@@ -157,6 +171,31 @@ export function LoginForm({
           <CardContent>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="flex flex-col gap-6">
+                {pathname === "/auth/register" && (
+                  <div className="grid gap-3">
+                    <FormField
+                      control={form.control}
+                      name="fullName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex flex-row">
+                            <FormLabel>Full Name</FormLabel>
+                          </div>
+
+                          <FormControl>
+                            <Input
+                              id="name"
+                              type="text"
+                              placeholder="Full Name"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
                 <div className="grid gap-3">
                   <FormField
                     control={form.control}
