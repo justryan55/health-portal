@@ -26,26 +26,34 @@ import {
 } from "@/components/ui/sidebar";
 import { createClient } from "@/lib/supabase/supabase-client";
 import { redirect } from "next/navigation";
+import { useUser } from "@/providers/user-provider";
+import { useEffect, useState } from "react";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
-}) {
+export function NavUser() {
+  const { user } = useUser();
+  const [userInitials, setUserInitials] = useState("");
+
   const { isMobile } = useSidebar();
 
   const logOut = async () => {
-    const supabase = await createClient();
+    const supabase = createClient();
     const { error } = await supabase.auth.signOut();
 
     if (!error) {
       redirect("/auth/login");
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+    console.log(user);
+    if (user.fullName[0]) {
+      const name = user.fullName.split(" ");
+      const firstInitial = name[0]?.[0] || "";
+      const secondInitial = name[1]?.[0] || "";
+      setUserInitials(firstInitial + secondInitial);
+    }
+  }, [user]);
 
   return (
     <SidebarMenu>
@@ -57,11 +65,13 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">RI</AvatarFallback>
+                <AvatarImage src={user.avatar} alt={user.fullName} />
+                <AvatarFallback className="rounded-lg">
+                  {userInitials}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{user.fullName}</span>
                 <span className="text-muted-foreground truncate text-xs">
                   {user.email}
                 </span>
@@ -78,11 +88,13 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">RI</AvatarFallback>
+                  <AvatarImage src={user.avatar} alt={user.fullName} />
+                  <AvatarFallback className="rounded-lg">
+                    {userInitials}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">{user.fullName}</span>
                   <span className="text-muted-foreground truncate text-xs">
                     {user.email}
                   </span>

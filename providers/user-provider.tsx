@@ -14,6 +14,7 @@ interface User {
   fullName: string;
   email: string;
   lastLogonTime: string;
+  avatar: string;
 }
 
 interface UserProviderProps {
@@ -29,6 +30,7 @@ const defaultUser: User = {
   fullName: "",
   email: "",
   lastLogonTime: "",
+  avatar: "",
 };
 
 const UserContext = createContext<UserContextType>({
@@ -42,14 +44,17 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const fetchUser = async () => {
     const supabase = createClient();
     const { data } = await supabase.auth.getUser();
+    console.log(data);
 
     setUser({
-      fullName: data.user?.user_metadata.display_name,
+      fullName:
+        data.user?.user_metadata.display_name ||
+        data.user?.user_metadata.full_name ||
+        "",
       email: data.user?.email || "",
       lastLogonTime: data.user?.last_sign_in_at || "",
+      avatar: "",
     });
-
-    console.log(user);
   };
 
   useEffect(() => {
