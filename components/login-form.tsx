@@ -24,6 +24,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/supabase-client";
+import spinnerWhite from "@/public/spinner-white.svg";
+import spinnerBlack from "@/public/spinner-black.svg";
+import Image from "next/image";
 
 export function LoginForm({
   className,
@@ -39,6 +42,9 @@ export function LoginForm({
   const [authError, setAuthError] = useState("");
   const pathname = usePathname();
   const router = useRouter();
+  const supabase = createClient();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
 
   const formSchema = z
     .object({
@@ -87,9 +93,9 @@ export function LoginForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const supabase = createClient();
-
     try {
+      setIsLoading(true);
+
       if (pathname === "/auth/register") {
         const { data, error } = await supabase.auth.signUp({
           email: values.email,
@@ -103,6 +109,7 @@ export function LoginForm({
 
         if (error) {
           setAuthError(error.message);
+          setIsLoading(false);
 
           setTimeout(() => {
             setAuthError("");
@@ -121,8 +128,7 @@ export function LoginForm({
 
         if (error) {
           setAuthError(error.message);
-          console.log("2");
-
+          setIsLoading(false);
           setTimeout(() => {
             setAuthError("");
           }, 2000);
@@ -131,10 +137,40 @@ export function LoginForm({
 
         router.push("/dashboard");
       }
+      setIsLoading(false);
     } catch (err) {
       console.log(err);
     }
   }
+
+  async function handleGoogleAuth() {
+    setIsGoogleLoading(true);
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+
+    if (error) {
+      setAuthError(error.message);
+      setIsLoading(false);
+      return;
+    }
+    setIsGoogleLoading(false);
+  }
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        router.push("/dashboard");
+      }
+    };
+
+    checkSession();
+  }, []);
 
   useEffect(() => {
     if (!pathname) return;
@@ -277,23 +313,39 @@ export function LoginForm({
                 )}
                 <div className="flex flex-col gap-3">
                   <Button type="submit" className="w-full">
-                    {formFields.button}
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    {formFields.button} with Google
+                    {isLoading ? (
+                      <Image src={spinnerWhite} alt="loading-spinner" />
+                    ) : (
+                      formFields.button
+                    )}
                   </Button>
                 </div>
               </div>
-              <div className="mt-4 text-center text-sm">
-                {formFields.footerText}{" "}
-                <a
-                  href={formFields.footerAction.toLowerCase()}
-                  className="underline underline-offset-4"
-                >
-                  {formFields.footerAction}
-                </a>
-              </div>
             </form>
+            <div className="pt-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleAuth}
+              >
+                {isGoogleLoading ? (
+                  <Image src={spinnerBlack} alt="loading-spinner" />
+                ) : (
+                  `${formFields.button} with Google`
+                )}
+              </Button>
+            </div>
+
+            <div className="mt-7 text-center text-sm">
+              {formFields.footerText}{" "}
+              <a
+                href={formFields.footerAction.toLowerCase()}
+                className="underline underline-offset-4"
+              >
+                {formFields.footerAction}
+              </a>
+            </div>
           </CardContent>
         </Card>
       </Form>
