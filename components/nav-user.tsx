@@ -46,7 +46,7 @@ export function NavUser() {
 
   useEffect(() => {
     if (!user) return;
-    console.log(user);
+
     if (user.fullName[0]) {
       const name = user.fullName.split(" ");
       const firstInitial = name[0]?.[0] || "";
