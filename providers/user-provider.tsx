@@ -1,64 +1,61 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/supabase-client";
+import React, {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-const gymStats = {
-  program: [
-    {
-      day: "Monday",
-      exercises: {},
-    },
-    {
-      day: "Tuesday",
-      exercises: {},
-    },
-    {
-      day: "Wednesday",
-      exercises: {},
-    },
-    {
-      day: "Thursday",
-      exercises: {},
-    },
-    {
-      day: "Friday",
-      exercises: {},
-    },
-    {
-      day: "Saturday",
-      exercises: {},
-    },
-    {
-      day: "Sunday",
-      exercises: {},
-    },
-  ],
-};
+interface User {
+  fullName: string;
+  email: string;
+  lastLogonTime: string;
+}
 
-const physicalStats = {
-  weight: "",
-  height: "",
-  age: "",
-};
+interface UserProviderProps {
+  children: React.ReactNode;
+}
 
-const defaultUser = {
-  firstName: "",
-  lastName: "",
+interface UserContextType {
+  user: User;
+  setUser: Dispatch<SetStateAction<User>>;
+}
+
+const defaultUser: User = {
   fullName: "",
   email: "",
   lastLogonTime: "",
-
-  physicalStats: physicalStats,
-  gymStats: gymStats,
 };
 
-const UserContext = createContext({
+const UserContext = createContext<UserContextType>({
   user: defaultUser,
   setUser: () => {},
 });
 
-export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(defaultUser);
+export const UserProvider = ({ children }: UserProviderProps) => {
+  const [user, setUser] = useState<User>(defaultUser);
+
+  const fetchUser = async () => {
+    const supabase = createClient();
+    const { data } = await supabase.auth.getUser();
+
+    setUser({
+      fullName: data.user?.user_metadata.display_name,
+      email: data.user?.email || "",
+      lastLogonTime: data.user?.last_sign_in_at || "",
+    });
+
+    console.log(user);
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, [user.email]);
+
   return (
     <UserContext.Provider value={{ user, setUser }}>
       {children}
