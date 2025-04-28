@@ -4,8 +4,9 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { UserProvider } from "../../providers/user-provider";
-import { createServerCl } from "@/lib/supabase/supabase-server";
 import { redirect } from "next/navigation";
+import { createServerClientInstance } from "@/lib/supabase/supabase-server";
+import { SupabaseProvider } from "@/providers/supabase-provider";
 
 export const metadata: Metadata = {
   title: "Forge Health Portal",
@@ -16,7 +17,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createServerCl();
+  const supabase = await createServerClientInstance();
 
   const {
     data: { user },
@@ -29,23 +30,25 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <UserProvider>
-          <SidebarProvider
-            style={
-              {
-                "--sidebar-width": "calc(var(--spacing) * 72)",
-                "--header-height": "calc(var(--spacing) * 12)",
-              } as React.CSSProperties
-            }
-          >
-            <AppSidebar variant="inset" />
-            <SidebarInset>
-              <SiteHeader />
+        <SupabaseProvider>
+          <UserProvider>
+            <SidebarProvider
+              style={
+                {
+                  "--sidebar-width": "calc(var(--spacing) * 72)",
+                  "--header-height": "calc(var(--spacing) * 12)",
+                } as React.CSSProperties
+              }
+            >
+              <AppSidebar variant="inset" />
+              <SidebarInset>
+                <SiteHeader />
 
-              {children}
-            </SidebarInset>
-          </SidebarProvider>
-        </UserProvider>
+                {children}
+              </SidebarInset>
+            </SidebarProvider>
+          </UserProvider>
+        </SupabaseProvider>
       </body>
     </html>
   );
