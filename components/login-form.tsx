@@ -23,10 +23,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/supabase-client";
 import spinnerWhite from "@/public/spinner-white.svg";
 import spinnerBlack from "@/public/spinner-black.svg";
 import Image from "next/image";
+import { supabase } from "@/lib/supabase/supabase-client";
 
 export function LoginForm({
   className,
@@ -42,7 +42,6 @@ export function LoginForm({
   const [authError, setAuthError] = useState("");
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
 

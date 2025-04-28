@@ -24,10 +24,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { createClient } from "@/lib/supabase/supabase-client";
 import { redirect } from "next/navigation";
 import { useUser } from "@/providers/user-provider";
 import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase/supabase-client";
 
 export function NavUser() {
   const { user } = useUser();
@@ -36,7 +36,6 @@ export function NavUser() {
   const { isMobile } = useSidebar();
 
   const logOut = async () => {
-    const supabase = createClient();
     const { error } = await supabase.auth.signOut();
 
     if (!error) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/supabase-client";
+import { supabase } from "@/lib/supabase/supabase-client";
 import React, {
   createContext,
   Dispatch,
@@ -42,7 +42,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const [user, setUser] = useState<User>(defaultUser);
 
   const fetchUser = async () => {
-    const supabase = createClient();
     const { data } = await supabase.auth.getUser();
 
     setUser({
