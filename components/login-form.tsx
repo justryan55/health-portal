@@ -148,6 +148,9 @@ export function LoginForm({
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: "/dashboard",
+      },
     });
 
     if (error) {
@@ -155,22 +158,23 @@ export function LoginForm({
       setIsLoading(false);
       return;
     }
+
     setIsGoogleLoading(false);
   }
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+  // useEffect(() => {
+  //   const checkSession = async () => {
+  //     const {
+  //       data: { session },
+  //     } = await supabase.auth.getSession();
 
-      if (session) {
-        router.push("/dashboard");
-      }
-    };
+  //     if (session) {
+  //       // router.push("/dashboard");
+  //     }
+  //   };
 
-    checkSession();
-  }, []);
+  //   checkSession();
+  // }, []);
 
   useEffect(() => {
     if (!pathname) return;
