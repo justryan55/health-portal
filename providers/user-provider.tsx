@@ -44,7 +44,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const fetchUser = async () => {
     const supabase = createClient();
     const { data } = await supabase.auth.getUser();
-    console.log(data);
 
     setUser({
       fullName:
