@@ -2,8 +2,14 @@ import { ChartLine } from "@/components/line-chart";
 import { ColumnProps, snapshotColumns } from "./tables/snapshot-columns";
 
 import { SnapshotTable } from "./tables/snapshot-table";
-import { Card, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ChartPie } from "@/components/pie-chart";
+import { addWorkout, fetchWorkouts } from "@/lib/workouts";
 
 async function getData(): Promise<ColumnProps[]> {
   // Fetch data from your API here.
@@ -54,18 +60,30 @@ async function getData(): Promise<ColumnProps[]> {
 }
 
 export default async function page() {
-  const data = await getData();
+  // const data = await getData();
+
+  fetchWorkouts();
+  addWorkout();
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="font-bold mb-2">Today's Workout</h1>
+      <div className="flex flex-col justify-center items-center w-full">
+        <div className="w-full text-center max-w-md">
+          <CardHeader>
+            <CardTitle>Build Your Workout</CardTitle>
+            <CardDescription>
+              No workouts added yet. Click 'Add Workout' to get started!
+            </CardDescription>
+          </CardHeader>
+        </div>
+      </div>
+      {/* <h1 className="font-bold mb-2">Today's Workout</h1>
       <div className="mb-6">
         <SnapshotTable columns={snapshotColumns} data={data} />
       </div>
       <div className="flex flex-row gap-8">
         <div className="flex-1">
           <ChartLine />
-          {/* <Calendar /> */}
         </div>
         <div className="flex-1 ">
           <Card className="h-full  px-6">
@@ -78,7 +96,7 @@ export default async function page() {
         <div className="flex-1">
           <ChartPie />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
