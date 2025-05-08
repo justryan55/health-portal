@@ -6,10 +6,18 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DatePicker } from "./ui/date-picker";
+import { useWorkoutContext } from "@/providers/workout-provider";
 
 export function SiteHeader() {
   const [header, setHeader] = useState("");
+  const { isCreatingWorkout, setIsCreatingWorkout } = useWorkoutContext();
+
   const pathname = usePathname();
+
+  const handleAddWorkout = () => {
+    setIsCreatingWorkout((prev) => !prev);
+  };
+
   useEffect(() => {
     function formatHeader(pathname: string) {
       const string = pathname.substring(1);
@@ -38,20 +46,8 @@ export function SiteHeader() {
         )}
         {pathname === "/workouts" && (
           <div className="ml-auto flex items-center gap-2">
-            <Button
-              variant="ghost"
-              asChild
-              size="sm"
-              className="hidden sm:flex"
-            >
-              <a
-                href="https://github.com/shadcn-ui/ui/tree/main/apps/v4/app/(examples)/dashboard"
-                rel="noopener noreferrer"
-                target="_blank"
-                className="dark:text-foreground"
-              >
-                Add Workout
-              </a>
+            <Button size="sm" className="sm:flex" onClick={handleAddWorkout}>
+              Add Workout
             </Button>
           </div>
         )}
