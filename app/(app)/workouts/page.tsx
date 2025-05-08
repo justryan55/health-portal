@@ -28,11 +28,11 @@ interface WorkoutEntry {
 export default function Page() {
   const session = useSupabaseSession();
   const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
-  const [dayIndex, setDayIndex] = useState(0);
   const [groupedByDay, setGroupedByDay] = useState<
     Record<number, WorkoutEntry[]>
   >({});
   const { isCreatingWorkout } = useWorkoutContext();
+  const [currentDayIndex, setCurrentDayIndex] = useState<number>(1);
 
   const days = [
     "Monday",
@@ -45,11 +45,11 @@ export default function Page() {
   ];
 
   const nextDay = () => {
-    setDayIndex((prev) => (prev + 1) % days.length);
+    setCurrentDayIndex((prev) => (prev + 1) % days.length);
   };
 
   const prevDay = () => {
-    setDayIndex((prev) => (prev - 1 + days.length) % days.length);
+    setCurrentDayIndex((prev) => (prev - 1 + days.length) % days.length);
   };
 
   useEffect(() => {
@@ -86,6 +86,11 @@ export default function Page() {
     returnWorkoutDays();
   }, [session]);
 
+  useEffect(() => {
+    const today = new Date().getDay() - 1;
+    setCurrentDayIndex(today);
+  }, []);
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex flex-col justify-center items-center w-full">
@@ -94,7 +99,8 @@ export default function Page() {
             <CardHeader>
               <CardTitle>Build Your Workout</CardTitle>
               <CardDescription>
-                No workouts added yet. Click &apos;Add Workout&apos; to get started!
+                No workouts added yet. Click &apos;Add Workout&apos; to get
+                started!
               </CardDescription>
             </CardHeader>
           )}
@@ -104,11 +110,13 @@ export default function Page() {
 
       {!isCreatingWorkout && hasStoredWorkout && (
         <>
-          <h1 className="font-bold mb-2">{days[dayIndex]}&apos;s Workout</h1>
+          <h1 className="font-bold mb-2">
+            {days[currentDayIndex]}&apos;s Workout
+          </h1>
           <div className="mb-6">
             <SnapshotTable
               columns={snapshotColumns}
-              data={groupedByDay[dayIndex] || []}
+              data={groupedByDay[currentDayIndex] || []}
             />
           </div>
           <div className="flex flex-row justify-between">
