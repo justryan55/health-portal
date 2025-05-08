@@ -13,7 +13,7 @@ import {
 import { ChartPie } from "@/components/pie-chart";
 import BuildWorkoutForm from "@/components/build-workout-form";
 import { useEffect, useState } from "react";
-import { fetchWorkoutDay } from "@/lib/workouts";
+import { fetchDailyWorkouts } from "@/lib/workouts";
 import { useSupabaseSession } from "@/providers/supabase-provider";
 import { useWorkoutContext } from "@/providers/workout-provider";
 import { Button } from "@/components/ui/button";
@@ -28,52 +28,53 @@ interface WorkoutEntry {
 export default function Page() {
   const session = useSupabaseSession();
   const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
-  const [groupedByDay, setGroupedByDay] = useState<
+  const [exercisesGroupedByDay, setExercisesGroupedByDay] = useState<
     Record<number, WorkoutEntry[]>
   >({});
   const { isCreatingWorkout } = useWorkoutContext();
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(1);
 
   const days = [
+    "Sunday",
     "Monday",
     "Tuesday",
     "Wednesday",
     "Thursday",
     "Friday",
     "Saturday",
-    "Sunday",
   ];
 
-  const nextDay = () => {
+  const handleNextDayClick = () => {
     setCurrentDayIndex((prev) => (prev + 1) % days.length);
   };
 
-  const prevDay = () => {
+  const handlePrevDayClick = () => {
     setCurrentDayIndex((prev) => (prev - 1 + days.length) % days.length);
   };
 
   useEffect(() => {
-    const returnWorkoutDays = async () => {
+    const returnDailyWorkouts = async () => {
       if (!session) return;
 
-      const data = await fetchWorkoutDay(session);
+      const data = await fetchDailyWorkouts(session);
 
       if (!data || data.length === 0) {
         setHasStoredWorkout(false);
         return;
       }
+
       setHasStoredWorkout(true);
 
-      const grouped: Record<number, WorkoutEntry[]> = {};
+      const groupedExercises: Record<number, WorkoutEntry[]> = {};
 
       data.forEach((item) => {
         const day = item.workout_day.day_of_the_week;
 
-        if (!grouped[day]) {
-          grouped[day] = [];
+        if (!groupedExercises[day]) {
+          groupedExercises[day] = [];
         }
 
-        grouped[day].push({
+        groupedExercises[day].push({
           exercise: item.exercise_name,
           sets: item.sets,
           reps: item.reps,
@@ -81,13 +82,13 @@ export default function Page() {
         });
       });
 
-      setGroupedByDay(grouped);
+      setExercisesGroupedByDay(groupedExercises);
     };
-    returnWorkoutDays();
+    returnDailyWorkouts();
   }, [session]);
 
   useEffect(() => {
-    const today = new Date().getDay() - 1;
+    const today = new Date().getDay();
     setCurrentDayIndex(today);
   }, []);
 
@@ -116,19 +117,19 @@ export default function Page() {
           <div className="mb-6">
             <SnapshotTable
               columns={snapshotColumns}
-              data={groupedByDay[currentDayIndex] || []}
+              data={exercisesGroupedByDay[currentDayIndex] || []}
             />
           </div>
           <div className="flex flex-row justify-between">
             <Button
-              onClick={prevDay}
+              onClick={handlePrevDayClick}
               className="mt-4 px-4 py-2 bg-white text-black border-2 hover:text-white"
             >
               {"<"}
             </Button>
 
             <Button
-              onClick={nextDay}
+              onClick={handleNextDayClick}
               className="mt-4 px-4 py-2 bg-white text-black border-2 hover:text-white"
             >
               {">"}
