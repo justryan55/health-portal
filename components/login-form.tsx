@@ -106,6 +106,8 @@ export function LoginForm({
           },
         });
 
+     
+
         if (error) {
           setAuthError(error.message);
           setIsLoading(false);
@@ -145,7 +147,7 @@ export function LoginForm({
   async function handleGoogleAuth() {
     setIsGoogleLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: "/dashboard",

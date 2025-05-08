@@ -13,17 +13,26 @@ import {
 import { ChartPie } from "@/components/pie-chart";
 import BuildWorkoutForm from "@/components/build-workout-form";
 import { useEffect, useState } from "react";
-import { fetchWorkoutDay, fetchWorkouts } from "@/lib/workouts";
+import { fetchWorkoutDay } from "@/lib/workouts";
 import { useSupabaseSession } from "@/providers/supabase-provider";
 import { useWorkoutContext } from "@/providers/workout-provider";
 import { Button } from "@/components/ui/button";
+
+interface WorkoutEntry {
+  exercise: string;
+  sets: number;
+  reps: number;
+  weight: number;
+}
 
 export default function Page() {
   const session = useSupabaseSession();
   const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
   const [dayIndex, setDayIndex] = useState(0);
-  const [groupedByDay, setGroupedByDay] = useState({});
-  const { isCreatingWorkout, setIsCreatingWorkout } = useWorkoutContext();
+  const [groupedByDay, setGroupedByDay] = useState<
+    Record<number, WorkoutEntry[]>
+  >({});
+  const { isCreatingWorkout } = useWorkoutContext();
 
   const days = [
     "Monday",
@@ -44,20 +53,18 @@ export default function Page() {
   };
 
   useEffect(() => {
-    const returnWorkouts = async () => {
-      const fetchIfWorkouts = await fetchWorkouts(session);
-      if (!fetchIfWorkouts) return;
-      setHasStoredWorkout(fetchIfWorkouts.length > 0);
-    };
-    returnWorkouts();
-  }, [session]);
-
-  useEffect(() => {
     const returnWorkoutDays = async () => {
-      const data = await fetchWorkoutDay(session);
-      if (!data) return;
+      if (!session) return;
 
-      const grouped = {};
+      const data = await fetchWorkoutDay(session);
+
+      if (!data || data.length === 0) {
+        setHasStoredWorkout(false);
+        return;
+      }
+      setHasStoredWorkout(true);
+
+      const grouped: Record<number, WorkoutEntry[]> = {};
 
       data.forEach((item) => {
         const day = item.workout_day.day_of_the_week;
@@ -87,7 +94,7 @@ export default function Page() {
             <CardHeader>
               <CardTitle>Build Your Workout</CardTitle>
               <CardDescription>
-                No workouts added yet. Click 'Add Workout' to get started!
+                No workouts added yet. Click &apos;Add Workout&apos; to get started!
               </CardDescription>
             </CardHeader>
           )}
@@ -95,9 +102,9 @@ export default function Page() {
       </div>
       {isCreatingWorkout && <BuildWorkoutForm />}
 
-      {!isCreatingWorkout && (
+      {!isCreatingWorkout && hasStoredWorkout && (
         <>
-          <h1 className="font-bold mb-2">{days[dayIndex]}'s Workout</h1>
+          <h1 className="font-bold mb-2">{days[dayIndex]}&apos;s Workout</h1>
           <div className="mb-6">
             <SnapshotTable
               columns={snapshotColumns}

@@ -2,7 +2,12 @@
 
 import React, { createContext, useCallback, useContext, useState } from "react";
 
-const WorkoutContext = createContext({
+type WorkoutContextType = {
+  isCreatingWorkout: boolean;
+  setIsCreatingWorkout: Dispatch<SetStateAction<boolean>>;
+};
+
+const WorkoutContext = createContext<WorkoutContextType>({
   isCreatingWorkout: false,
   setIsCreatingWorkout: () => {},
 });

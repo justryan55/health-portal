@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,20 +9,31 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Button } from "./ui/button";
-import { addWorkout, fetchWorkoutDay } from "@/lib/workouts";
+import { addWorkout } from "@/lib/workouts";
 import { useWorkoutContext } from "@/providers/workout-provider";
 
-export default function BuildWorkoutForm() {
-  const { isCreatingWorkout, setIsCreatingWorkout } = useWorkoutContext();
+interface Exercise {
+  exercise: string;
+  sets: number;
+  reps: number;
+  weight: number;
+}
 
-  const [exercisesByDay, setExercisesByDay] = useState({
-    0: [{ exercise: "", sets: "", reps: "", weight: "" }],
-    1: [{ exercise: "", sets: "", reps: "", weight: "" }],
-    2: [{ exercise: "", sets: "", reps: "", weight: "" }],
-    3: [{ exercise: "", sets: "", reps: "", weight: "" }],
-    4: [{ exercise: "", sets: "", reps: "", weight: "" }],
-    5: [{ exercise: "", sets: "", reps: "", weight: "" }],
-    6: [{ exercise: "", sets: "", reps: "", weight: "" }],
+type ExercisesByDayProps = {
+  [day: number]: Exercise[];
+};
+
+export default function BuildWorkoutForm() {
+  const { setIsCreatingWorkout } = useWorkoutContext();
+
+  const [exercisesByDay, setExercisesByDay] = useState<ExercisesByDayProps>({
+    0: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
+    1: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
+    2: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
+    3: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
+    4: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
+    5: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
+    6: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
   });
 
   const [day, setDay] = useState(0);
@@ -37,7 +48,7 @@ export default function BuildWorkoutForm() {
     "Sunday",
   ];
 
-  const handleInputChange = (index, field, value) => {
+  const handleInputChange = (index: number, field: string, value: string) => {
     const dayExercises = exercisesByDay[day] || [];
     const updatedExercises = [...dayExercises];
     updatedExercises[index][field] = value;
@@ -71,10 +82,10 @@ export default function BuildWorkoutForm() {
 
   const handleSaveClick = () => {
     addWorkout(exercisesByDay);
-    setIsCreatingWorkout((prev) => !prev);
+    setIsCreatingWorkout((prev: boolean) => !prev);
   };
 
-  const handleDeleteClick = (index) => {
+  const handleDeleteClick = (index: number) => {
     const dayExercises = exercisesByDay[day] || [];
 
     dayExercises.splice(index, 1);

@@ -1,4 +1,4 @@
-import { useSupabaseSession } from "@/providers/supabase-provider";
+import { Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase/supabase-client";
 
 export const addWorkout = async (exercisesByDay) => {
@@ -56,7 +56,8 @@ export const addWorkout = async (exercisesByDay) => {
   console.log("Workout created successfully");
 };
 
-export const fetchWorkouts = async (session) => {
+export const fetchWorkouts = async (session: Session) => {
+  console.log(session);
   if (!session) return;
   const userId = session.user.id;
 
@@ -74,36 +75,37 @@ export const fetchWorkouts = async (session) => {
   console.log("Error");
 };
 
-export const fetchWorkoutDay = async (session) => {
+export const fetchWorkoutDay = async (session: Session) => {
+  try {
+    console.log(session);
+    if (!session) return;
 
-  if (!session) return;
+    const userId = session.user.id;
 
-  const userId = session.user.id;
-
-  const { data, error } = await supabase
-    .from("workout_day_exercises")
-    .select(
-      `
-    sets,
-    reps,
-    weight,
-    exercise_name,
-    workout_day:workout_day_id (
-    day_of_the_week,
-      workout:workout_id (
-        user_id
+    const { data, error } = await supabase
+      .from("workout_day_exercises")
+      .select(
+        `
+      sets,
+      reps,
+      weight,
+      exercise_name,
+      workout_day:workout_day_id (
+      day_of_the_week,
+        workout:workout_id (
+          user_id
+        )
       )
-    )
-  `
-    )
-    .eq("user_id", userId);
+    `
+      )
+      .eq("user_id", userId);
 
-  if (!data) return;
+    if (!data) return;
 
-
-  if (data.length > 0) {
-    return data;
+    if (data.length > 0) {
+      return data;
+    }
+  } catch {
+    console.log("Error");
   }
-
-  console.log("Error");
 };

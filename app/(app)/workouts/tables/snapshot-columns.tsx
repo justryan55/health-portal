@@ -3,7 +3,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 export type ColumnProps = {
-  id: string;
   exercise: string;
   sets: number;
   reps: number;
