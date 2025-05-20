@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -36,6 +36,11 @@ export default function BuildWorkoutForm() {
     6: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
   });
 
+  const [workoutPlan, setWorkoutPlan] = useState({
+    workoutName: "",
+    exercises: exercisesByDay,
+  });
+
   const [day, setDay] = useState(0);
 
   const days = [
@@ -48,7 +53,11 @@ export default function BuildWorkoutForm() {
     "Sunday",
   ];
 
-  const handleInputChange = (index: number, field: string, value: string) => {
+  const handleExerciseInputChange = (
+    index: number,
+    field: string,
+    value: string
+  ) => {
     const dayExercises = exercisesByDay[day] || [];
     const updatedExercises = [...dayExercises];
     updatedExercises[index][field] = value;
@@ -57,6 +66,10 @@ export default function BuildWorkoutForm() {
       ...exercisesByDay,
       [day]: updatedExercises,
     });
+  };
+
+  const handleTitleChange = (value: string) => {
+    setWorkoutPlan((prev) => ({ ...prev, workoutName: value }));
   };
 
   const addRow = () => {
@@ -81,7 +94,8 @@ export default function BuildWorkoutForm() {
   };
 
   const handleSaveClick = () => {
-    uploadWorkoutToDB(exercisesByDay);
+    // uploadWorkoutToDB(exercisesByDay);
+    uploadWorkoutToDB(workoutPlan);
     setIsCreatingWorkout((prev: boolean) => !prev);
   };
 
@@ -100,6 +114,15 @@ export default function BuildWorkoutForm() {
     <div className="flex justify-center items-center w-full">
       <div className=" max-w-fit">
         <Card>
+          <div className="flex justify-center items-center">
+            <input
+              type="text"
+              // value={row.exercise}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              placeholder="Workout Name"
+              className="border px-2 py-1 text-center font-bold"
+            />
+          </div>
           <div className="flex flex-row justify-around ">
             <CardHeader className="w-full">
               <CardTitle>{days[day]}</CardTitle>
@@ -135,7 +158,11 @@ export default function BuildWorkoutForm() {
                           type="text"
                           value={row.exercise}
                           onChange={(e) =>
-                            handleInputChange(index, "exercise", e.target.value)
+                            handleExerciseInputChange(
+                              index,
+                              "exercise",
+                              e.target.value
+                            )
                           }
                           placeholder="Exercise"
                           // className="w-full border px-2 py-1"
@@ -146,7 +173,11 @@ export default function BuildWorkoutForm() {
                           type="number"
                           value={row.sets}
                           onChange={(e) =>
-                            handleInputChange(index, "sets", e.target.value)
+                            handleExerciseInputChange(
+                              index,
+                              "sets",
+                              e.target.value
+                            )
                           }
                           placeholder="Sets"
                           // className="w-full border px-2 py-1"
@@ -157,7 +188,11 @@ export default function BuildWorkoutForm() {
                           type="number"
                           value={row.reps}
                           onChange={(e) =>
-                            handleInputChange(index, "reps", e.target.value)
+                            handleExerciseInputChange(
+                              index,
+                              "reps",
+                              e.target.value
+                            )
                           }
                           placeholder="Reps"
                           // className="w-full border px-2 py-1"
@@ -168,7 +203,11 @@ export default function BuildWorkoutForm() {
                           type="number"
                           value={row.weight}
                           onChange={(e) =>
-                            handleInputChange(index, "weight", e.target.value)
+                            handleExerciseInputChange(
+                              index,
+                              "weight",
+                              e.target.value
+                            )
                           }
                           placeholder="Weight"
                           // className="w-full border px-2 py-1"

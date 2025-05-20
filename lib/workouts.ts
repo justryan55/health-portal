@@ -8,17 +8,23 @@ interface Exercise {
   weight: number;
 }
 
-type ExercisesByDayProps = {
+interface ExercisesByDay {
   [day: number]: Exercise[];
-};
+}
 
-export const uploadWorkoutToDB = async (
-  exercisesByDay: ExercisesByDayProps
-) => {
+interface WorkoutPlan {
+  workoutName: string;
+  exercises: ExercisesByDay;
+}
+
+export const uploadWorkoutToDB = async (workoutPlan: WorkoutPlan) => {
   try {
+    const exercisesByDay = workoutPlan.exercises;
+
+    console.log(exercisesByDay);
     const { data: workoutData, error: workoutError } = await supabase
       .from("workouts")
-      .insert({ name: "" })
+      .insert({ name: workoutPlan.workoutName })
       .select()
       .single();
 
