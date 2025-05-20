@@ -19,7 +19,7 @@ import { useWorkoutContext } from "@/providers/workout-provider";
 import { Button } from "@/components/ui/button";
 
 interface WorkoutEntry {
-  exercise: string;
+  exercise_name: string;
   sets: number;
   reps: number;
   weight: number;
@@ -35,13 +35,13 @@ export default function Page() {
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(1);
 
   const days = [
-    "Sunday",
     "Monday",
     "Tuesday",
     "Wednesday",
     "Thursday",
     "Friday",
     "Saturday",
+    "Sunday",
   ];
 
   const handleNextDayClick = () => {
@@ -57,6 +57,7 @@ export default function Page() {
       if (!session) return;
 
       const data = await fetchDailyWorkouts(session);
+      console.log("Data", data);
 
       if (!data || data.length === 0) {
         setHasStoredWorkout(false);
@@ -67,29 +68,33 @@ export default function Page() {
 
       const groupedExercises: Record<number, WorkoutEntry[]> = {};
 
-      data.forEach((item) => {
-        const day = item.workout_day.day_of_the_week;
+      const dailyExercises = data[0].days;
 
-        if (!groupedExercises[day]) {
-          groupedExercises[day] = [];
-        }
+      // data.forEach((item, index) => {
+      //   console.log("Item", item);
+      //   console.log(index)
+      //   const days = item.days;
+      //   const day = days[index];
+      //   // if (!groupedExercises[day]) {
+      //   //   groupedExercises[day] = [];
+      //   // }
 
-        groupedExercises[day].push({
-          exercise: item.exercise_name,
-          sets: item.sets,
-          reps: item.reps,
-          weight: item.weight,
-        });
-      });
+      //   // groupedExercises[day].push({
+      //   //   exercise: item.exercise_name,
+      //   //   sets: item.sets,
+      //   //   reps: item.reps,
+      //   //   weight: item.weight,
+      //   // });
+      // });
 
-      setExercisesGroupedByDay(groupedExercises);
+      setExercisesGroupedByDay(dailyExercises);
     };
     returnDailyWorkouts();
   }, [session]);
 
   useEffect(() => {
     const today = new Date().getDay();
-    setCurrentDayIndex(today);
+    setCurrentDayIndex(today - 1);
   }, []);
 
   return (

@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 export type ColumnProps = {
-  exercise: string;
+  exercise_name: string;
   sets: number;
   reps: number;
   weight: number;
@@ -11,7 +11,7 @@ export type ColumnProps = {
 
 export const snapshotColumns: ColumnDef<ColumnProps>[] = [
   {
-    accessorKey: "exercise",
+    accessorKey: "exercise_name",
     header: "Exercise",
   },
   {
