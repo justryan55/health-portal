@@ -21,7 +21,6 @@ export const uploadWorkoutToDB = async (workoutPlan: WorkoutPlan) => {
   try {
     const exercisesByDay = workoutPlan.exercises;
 
-    console.log(exercisesByDay);
     const { data: workoutData, error: workoutError } = await supabase
       .from("workouts")
       .insert({ name: workoutPlan.workoutName })
@@ -80,7 +79,7 @@ export const uploadWorkoutToDB = async (workoutPlan: WorkoutPlan) => {
 
 export const fetchDailyWorkouts = async (session: Session) => {
   try {
-    if (!session) return;
+    if (!session || !session.user) return;
 
     const userId = session.user.id;
 
