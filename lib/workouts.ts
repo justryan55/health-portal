@@ -17,7 +17,7 @@ interface WorkoutPlan {
   exercises: ExercisesByDay;
 }
 
-export const uploadWorkoutToDB = async (workoutPlan: WorkoutPlan) => {
+export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
   try {
     const exercisesByDay = workoutPlan.exercises;
 
@@ -151,5 +151,50 @@ export const fetchDailyWorkouts = async (session: Session) => {
   } catch (err) {
     console.error("Error fetching daily workouts:", err);
     return [];
+  }
+};
+
+export const fetchDailyWorkout = async (session, date) => {
+  try {
+    console.log(date);
+    if (!session || !session.user) return;
+
+    const userId = session.user.id;
+
+    const { data, error } = await supabase
+      .from("daily_workouts")
+      .select()
+      .eq("date", date)
+      .eq("user", userId);
+
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    return data;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const uploadDailyWorkoutToDB = async (session, workout, date) => {
+  try {
+    if (!session || !session.user) return;
+
+    const userId = session.user.id;
+
+    const { data, error } = await supabase
+      .from("daily_workouts")
+      .insert([{ date: date }])
+      .select();
+
+    if (!error) {
+      console.log("Success");
+    }
+
+    console.log(data);
+  } catch (err) {
+    console.log(err);
   }
 };
