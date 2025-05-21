@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ChartPie } from "@/components/pie-chart";
-import BuildWorkoutForm from "@/components/build-workout-form";
+import BuildWorkoutForm from "@/components/build-workout-plan-form";
 import { useEffect, useState } from "react";
 import { fetchDailyWorkouts } from "@/lib/workouts";
 import { useSupabaseSession } from "@/providers/supabase-provider";
@@ -19,6 +19,8 @@ import { useWorkoutContext } from "@/providers/workout-provider";
 import { Button } from "@/components/ui/button";
 import spinnerBlack from "@/public/spinner-black.svg";
 import Image from "next/image";
+import { Calendar } from "@/components/ui/calendar";
+import BuildDailyWorkoutForm from "@/components/build-daily-workout-form";
 
 interface WorkoutEntry {
   exercise_name: string;
@@ -33,9 +35,11 @@ export default function Page() {
   const [exercisesGroupedByDay, setExercisesGroupedByDay] = useState<
     Record<number, WorkoutEntry[]>
   >({});
+  const [workoutName, setWorkoutName] = useState("");
   const { isCreatingWorkout } = useWorkoutContext();
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
   const days = [
     "Monday",
@@ -71,7 +75,7 @@ export default function Page() {
       setIsLoading(false);
 
       const dailyExercises = data[0].days;
-
+      setWorkoutName(data[0].name);
       setExercisesGroupedByDay(dailyExercises);
     };
     returnDailyWorkouts();
@@ -84,6 +88,17 @@ export default function Page() {
 
   return (
     <div className="container mx-auto py-10 w-11/12">
+      <div className="flex flex-col justify-center items-center pb-10 sm:flex-row sm:justify-start ">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={setDate}
+          className="rounded-md border shadow"
+        />
+        <BuildDailyWorkoutForm date={date} />
+      </div>
+      <div className="border-t border-gray-200 mb-5" />
+
       <div className="flex flex-col justify-center items-center w-full">
         <div className="w-full text-center max-w-mzd ">
           {!hasStoredWorkout && !isLoading && !isCreatingWorkout ? (
@@ -96,8 +111,13 @@ export default function Page() {
             </CardHeader>
           ) : (
             isLoading && (
-              <div className="flex justify-center">
-                <Image src={spinnerBlack} alt="loading-spinner" className="" />
+              <div className="flex justify-center h-80">
+                <Image
+                  src={spinnerBlack}
+                  alt="loading-spinner"
+                  className=""
+                  priority
+                />
               </div>
             )
           )}
@@ -107,9 +127,10 @@ export default function Page() {
 
       {!isCreatingWorkout && hasStoredWorkout && (
         <>
-          <h1 className="font-bold mb-2">
+          <h1 className="text-center text-lg font-bold mb-2">{workoutName}</h1>
+          <h2 className="font-bold mb-2 text-center sm:text-left">
             {days[currentDayIndex]}&apos;s Workout
-          </h1>
+          </h2>
           <div className="mb-6">
             <SnapshotTable
               columns={snapshotColumns}
