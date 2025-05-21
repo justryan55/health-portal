@@ -66,6 +66,8 @@ export default function BuildWorkoutForm() {
       ...exercisesByDay,
       [day]: updatedExercises,
     });
+
+    setWorkoutPlan({ ...workoutPlan, exercises: exercisesByDay });
   };
 
   const handleTitleChange = (value: string) => {
@@ -94,7 +96,6 @@ export default function BuildWorkoutForm() {
   };
 
   const handleSaveClick = () => {
-    // uploadWorkoutToDB(exercisesByDay);
     uploadWorkoutToDB(workoutPlan);
     setIsCreatingWorkout((prev: boolean) => !prev);
   };
@@ -135,7 +136,7 @@ export default function BuildWorkoutForm() {
                 onClick={handleSaveClick}
                 className="px-4 py-2 bg-white text-black border-2 hover:text-white"
               >
-                Upload Workout
+                Upload Workout Plan
               </Button>
             </div>
           </div>
