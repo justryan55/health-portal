@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Button } from "./ui/button";
-import { uploadWorkoutToDB } from "@/lib/workouts";
+import { uploadWorkoutPlanToDB } from "@/lib/workouts";
 import { useWorkoutContext } from "@/providers/workout-provider";
 
 interface Exercise {
@@ -96,7 +96,7 @@ export default function BuildWorkoutForm() {
   };
 
   const handleSaveClick = () => {
-    uploadWorkoutToDB(workoutPlan);
+    uploadWorkoutPlanToDB(workoutPlan);
     setIsCreatingWorkout((prev: boolean) => !prev);
   };
 
