@@ -118,7 +118,6 @@ export default function BuildWorkoutForm() {
           <div className="flex justify-center items-center">
             <input
               type="text"
-              // value={row.exercise}
               onChange={(e) => handleTitleChange(e.target.value)}
               placeholder="Workout Name"
               className="border px-2 py-1 text-center font-bold"
