@@ -2,7 +2,6 @@
 
 import { ChartLine } from "@/components/line-chart";
 import { ColumnProps, snapshotColumns } from "./tables/snapshot-columns";
-
 import { SnapshotTable } from "./tables/snapshot-table";
 import {
   Card,
@@ -21,6 +20,14 @@ import spinnerBlack from "@/public/spinner-black.svg";
 import Image from "next/image";
 import { Calendar } from "@/components/ui/calendar";
 import BuildDailyWorkoutForm from "@/components/build-daily-workout-form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface WorkoutEntry {
   exercise_name: string;
@@ -40,6 +47,7 @@ export default function Page() {
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isMobile, setIsMobile] = useState(false);
 
   const days = [
     "Monday",
@@ -62,9 +70,9 @@ export default function Page() {
   useEffect(() => {
     const returnDailyWorkouts = async () => {
       if (!session || !session.user) return;
-      
+
       const data = await fetchDailyWorkouts(session);
-      console.log(data);
+
       if (!data || data.length === 0) {
         setIsLoading(false);
         setHasStoredWorkout(false);
@@ -86,15 +94,50 @@ export default function Page() {
     setCurrentDayIndex(today - 1);
   }, []);
 
+  useEffect(() => {
+    window.addEventListener("resize", () => {
+      if (window.innerWidth <= 760) {
+        setIsMobile(true);
+      } else {
+        setIsMobile(false);
+      }
+    });
+  }, [window.innerWidth]);
+
   return (
     <div className="container mx-auto py-10 w-11/12">
       <div className="flex flex-col justify-center items-center pb-10 sm:flex-row sm:justify-start ">
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={setDate}
-          className="rounded-md border shadow"
-        />
+        {isMobile ? (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon />
+                {date ? format(date, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            className="rounded-md border shadow"
+          />
+        )}
         <BuildDailyWorkoutForm date={date} />
       </div>
       <div className="border-t border-gray-200 mb-5" />
