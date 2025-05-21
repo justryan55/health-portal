@@ -17,6 +17,8 @@ import { fetchDailyWorkouts } from "@/lib/workouts";
 import { useSupabaseSession } from "@/providers/supabase-provider";
 import { useWorkoutContext } from "@/providers/workout-provider";
 import { Button } from "@/components/ui/button";
+import spinnerBlack from "@/public/spinner-black.svg";
+import Image from "next/image";
 
 interface WorkoutEntry {
   exercise_name: string;
@@ -33,6 +35,7 @@ export default function Page() {
   >({});
   const { isCreatingWorkout } = useWorkoutContext();
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState(true);
 
   const days = [
     "Monday",
@@ -57,35 +60,17 @@ export default function Page() {
       if (!session) return;
 
       const data = await fetchDailyWorkouts(session);
-      console.log("Data", data);
-
+      console.log(data);
       if (!data || data.length === 0) {
+        setIsLoading(false);
         setHasStoredWorkout(false);
         return;
       }
 
       setHasStoredWorkout(true);
-
-      const groupedExercises: Record<number, WorkoutEntry[]> = {};
+      setIsLoading(false);
 
       const dailyExercises = data[0].days;
-
-      // data.forEach((item, index) => {
-      //   console.log("Item", item);
-      //   console.log(index)
-      //   const days = item.days;
-      //   const day = days[index];
-      //   // if (!groupedExercises[day]) {
-      //   //   groupedExercises[day] = [];
-      //   // }
-
-      //   // groupedExercises[day].push({
-      //   //   exercise: item.exercise_name,
-      //   //   sets: item.sets,
-      //   //   reps: item.reps,
-      //   //   weight: item.weight,
-      //   // });
-      // });
 
       setExercisesGroupedByDay(dailyExercises);
     };
@@ -98,10 +83,10 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-10 w-11/12">
       <div className="flex flex-col justify-center items-center w-full">
-        <div className="w-full text-center max-w-mzd">
-          {!hasStoredWorkout && !isCreatingWorkout && (
+        <div className="w-full text-center max-w-mzd ">
+          {!hasStoredWorkout && !isLoading && !isCreatingWorkout ? (
             <CardHeader>
               <CardTitle>Build Your Workout</CardTitle>
               <CardDescription>
@@ -109,6 +94,12 @@ export default function Page() {
                 started!
               </CardDescription>
             </CardHeader>
+          ) : (
+            isLoading && (
+              <div className="flex justify-center">
+                <Image src={spinnerBlack} alt="loading-spinner" className="" />
+              </div>
+            )
           )}
         </div>
       </div>
