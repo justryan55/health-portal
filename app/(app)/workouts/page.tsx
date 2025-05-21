@@ -61,8 +61,8 @@ export default function Page() {
 
   useEffect(() => {
     const returnDailyWorkouts = async () => {
-      if (!session) return;
-
+      if (!session || !session.user) return;
+      
       const data = await fetchDailyWorkouts(session);
       console.log(data);
       if (!data || data.length === 0) {
