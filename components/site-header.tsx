@@ -39,15 +39,15 @@ export function SiteHeader() {
           className="mx-2 data-[orientation=vertical]:h-4"
         />
         <h1 className="text-base font-medium">{header}</h1>
-        {pathname !== "/dashboard" && (
+        {/* {pathname !== "/dashboard" && (
           <div className="pl-5">
             <DatePicker />
           </div>
-        )}
+        )} */}
         {pathname === "/workouts" && (
           <div className="ml-auto flex items-center gap-2">
             <Button size="sm" className="sm:flex" onClick={handleAddWorkout}>
-              Add Workout
+              Add Workout Plan
             </Button>
           </div>
         )}
