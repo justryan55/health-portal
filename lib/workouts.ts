@@ -160,39 +160,81 @@ export const fetchDailyWorkout = async (session, date) => {
     if (!session || !session.user) return;
 
     const userId = session.user.id;
-
-    const { data, error } = await supabase
+    console.log(date);
+    const { data: dailyWorkout, error: dailyWorkoutError } = await supabase
       .from("daily_workouts")
       .select()
       .eq("date", date)
-      .eq("user", userId);
+      .eq("user", userId)
+      .single();
 
-    if (error) {
-      console.log(error);
-      return;
+    if (dailyWorkoutError) {
+      console.log(dailyWorkoutError);
+      return null;
     }
 
-    return data;
+    const dailyWorkoutId = dailyWorkout.id;
+
+    const { data: exerciseData, error: exerciseError } = await supabase
+      .from("exercises")
+      .select()
+      .eq("daily_workout_id", dailyWorkoutId)
+      .single();
+
+    // console.log(exerciseData);
+
+    return dailyWorkout;
   } catch (err) {
     console.log(err);
   }
 };
 
-export const uploadDailyWorkoutToDB = async (session, workout, date) => {
+export const uploadExerciseToDB = async (session, exercise, date) => {
   try {
     if (!session || !session.user) return;
-
+    console.log("exercise", exercise);
     const userId = session.user.id;
 
-    const { data, error } = await supabase
+    const { data: dailyWorkout, error: dailyWorkoutError } = await supabase
       .from("daily_workouts")
       .insert([{ date: date }])
-      .select();
+      .select()
+      .single();
 
-    if (!error) {
-      console.log("Success");
+    if (dailyWorkoutError) {
+      console.log("dailyWorkoutError", dailyWorkoutError);
     }
 
+    const { data: exerciseData, error: exerciseError } = await supabase
+      .from("exercises")
+      .insert([{ daily_workout_id: dailyWorkout.id, name: exercise.name }])
+      .select()
+      .single();
+
+    if (exerciseError) {
+      console.log(exerciseError);
+    }
+
+    const exerciseId = exerciseData.id;
+    // console.log("1", exerciseData);
+
+    const setsPayload = exercise.set.map((set) => ({
+      exercise_id: exerciseId,
+      weight: set.weight,
+      reps: set.reps,
+    }));
+
+    console.log("Payload", setsPayload);
+
+    console.log("2", exercise.set);
+    const { data, error } = await supabase
+      .from("sets")
+      .insert(setsPayload)
+      .select();
+
+    if (error) {
+      console.log(error);
+    }
     console.log(data);
   } catch (err) {
     console.log(err);
