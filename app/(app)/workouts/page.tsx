@@ -96,7 +96,7 @@ export default function Page() {
 
   useEffect(() => {
     window.addEventListener("resize", () => {
-      if (window.innerWidth <= 760) {
+      if (window.innerWidth < 640) {
         setIsMobile(true);
       } else {
         setIsMobile(false);
