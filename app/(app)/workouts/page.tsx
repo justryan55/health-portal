@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { ChartPie } from "@/components/pie-chart";
 import BuildWorkoutForm from "@/components/build-workout-plan-form";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchDailyWorkouts } from "@/lib/workouts";
 import { useSupabaseSession } from "@/providers/supabase-provider";
 import { useWorkoutContext } from "@/providers/workout-provider";
@@ -67,27 +67,34 @@ export default function Page() {
     setCurrentDayIndex((prev) => (prev - 1 + days.length) % days.length);
   };
 
-  useEffect(() => {
-    const returnDailyWorkouts = async () => {
-      if (!session || !session.user) return;
+  const returnDailyWorkouts = useCallback(async () => {
+    if (!session || !session.user) return;
 
-      const data = await fetchDailyWorkouts(session);
+    const data = await fetchDailyWorkouts(session);
 
-      if (!data || data.length === 0) {
-        setIsLoading(false);
-        setHasStoredWorkout(false);
-        return;
-      }
-
-      setHasStoredWorkout(true);
+    if (!data || data.length === 0) {
       setIsLoading(false);
+      setHasStoredWorkout(false);
+      return;
+    }
 
-      const dailyExercises = data[0].days;
-      setWorkoutName(data[0].name);
-      setExercisesGroupedByDay(dailyExercises);
-    };
+    setHasStoredWorkout(true);
+    setIsLoading(false);
+
+    const dailyExercises = data[0].days;
+    setWorkoutName(data[0].name);
+    setExercisesGroupedByDay(dailyExercises);
+  }, [
+    session,
+    setIsLoading,
+    setHasStoredWorkout,
+    setWorkoutName,
+    setExercisesGroupedByDay,
+  ]);
+
+  useEffect(() => {
     returnDailyWorkouts();
-  }, [session]);
+  }, [returnDailyWorkouts]);
 
   useEffect(() => {
     const today = new Date().getDay();
@@ -142,7 +149,7 @@ export default function Page() {
       </div>
       <div className="border-t border-gray-200 mb-5" />
 
-      <div className="flex flex-col justify-center items-center w-full">
+      {/* <div className="flex flex-col justify-center items-center w-full">
         <div className="w-full text-center max-w-mzd ">
           {!hasStoredWorkout && !isLoading && !isCreatingWorkout ? (
             <CardHeader>
@@ -166,7 +173,40 @@ export default function Page() {
           )}
         </div>
       </div>
-      {isCreatingWorkout && <BuildWorkoutForm />}
+      {isCreatingWorkout && <BuildWorkoutForm />}   */}
+
+      {/* <div className="flex flex-col justify-center items-center w-full">
+        <div className="w-full text-center max-w-mzd ">
+          {!hasStoredWorkout && !isLoading && !isCreatingWorkout ? (
+            <CardHeader>
+              <CardTitle>Build Your Workout</CardTitle>
+              <CardDescription>
+                No workouts added yet. Click &apos;Add Workout&apos; to get
+                started!
+              </CardDescription>
+            </CardHeader>
+          ) : (
+            isLoading && (
+              <div className="flex justify-center h-80">
+                <Image
+                  src={spinnerBlack}
+                  alt="loading-spinner"
+                  className=""
+                  priority
+                />
+              </div>
+            )
+          )}
+        </div>
+      </div> */}
+      {/* {isCreatingWorkout && <BuildWorkoutForm />} */}
+      <BuildWorkoutForm
+        onWorkoutSaved={returnDailyWorkouts}
+        hasStoredWorkout={hasStoredWorkout}
+        setHasStoredWorkout={setHasStoredWorkout}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+      />
 
       {!isCreatingWorkout && hasStoredWorkout && (
         <>

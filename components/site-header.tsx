@@ -44,13 +44,13 @@ export function SiteHeader() {
             <DatePicker />
           </div>
         )} */}
-        {pathname === "/workouts" && (
+        {/* {pathname === "/workouts" && (
           <div className="ml-auto flex items-center gap-2">
             <Button size="sm" className="sm:flex" onClick={handleAddWorkout}>
               Add Workout Plan
             </Button>
           </div>
-        )}
+        )} */}
       </div>
     </header>
   );

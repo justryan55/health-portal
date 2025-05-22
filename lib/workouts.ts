@@ -29,7 +29,7 @@ export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
 
     if (workoutError) {
       console.error("Error creating workout:", workoutError);
-      return;
+      return { data: null, error: workoutError };
     }
 
     const workout_id = workoutData.id;
@@ -48,7 +48,7 @@ export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
 
     if (workoutDaysError) {
       console.error("Error creating workout days:", workoutDaysError);
-      return;
+      return { data: null, error: workoutDaysError };
     }
 
     for (const day of dayKeys) {
@@ -69,11 +69,14 @@ export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
 
       if (wdeError) {
         console.error("Error inserting workout_day_exercises:", wdeError);
+        return { data: null, error: wdeError };
       }
     }
     console.log("Workout created successfully");
-  } catch {
+    return { data: workoutData, error: null };
+  } catch (err) {
     console.error("Error uploading workout program to database");
+    return { data: null, error: err };
   }
 };
 

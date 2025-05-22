@@ -9,31 +9,58 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Button } from "./ui/button";
-import { uploadWorkoutPlanToDB } from "@/lib/workouts";
+import { fetchDailyWorkouts, uploadWorkoutPlanToDB } from "@/lib/workouts";
 import { useWorkoutContext } from "@/providers/workout-provider";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { Plus, ChevronRight, ChevronLeft } from "lucide-react";
+import { Input } from "./ui/input";
+import { nanoid } from "nanoid";
+import { useSupabaseSession } from "@/providers/supabase-provider";
+import Image from "next/image";
+import spinnerBlack from "@/public/spinner-black.svg";
 
 interface Exercise {
+  id: string;
   exercise: string;
-  sets: number;
-  reps: number;
-  weight: number;
+  sets: number | null;
+  reps: number | null;
+  weight: number | null;
 }
 
 type ExercisesByDayProps = {
   [day: number]: Exercise[];
 };
 
-export default function BuildWorkoutForm() {
+export default function BuildWorkoutForm({
+  onWorkoutSaved,
+  hasStoredWorkout,
+  setHasStoredWorkout,
+  isLoading,
+  setIsLoading,
+}) {
+  const session = useSupabaseSession();
   const { setIsCreatingWorkout } = useWorkoutContext();
+  // const [isLoading, setIsLoading] = useState(true);
+  const [workoutName, setWorkoutName] = useState("");
+  // const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
 
   const [exercisesByDay, setExercisesByDay] = useState<ExercisesByDayProps>({
-    0: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
-    1: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
-    2: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
-    3: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
-    4: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
-    5: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
-    6: [{ exercise: "", sets: 0, reps: 0, weight: 0 }],
+    0: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    1: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    2: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    3: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    4: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    5: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    6: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
   });
 
   const [workoutPlan, setWorkoutPlan] = useState({
@@ -95,8 +122,14 @@ export default function BuildWorkoutForm() {
     setDay((prevDay) => (prevDay - 1 + days.length) % days.length);
   };
 
-  const handleSaveClick = () => {
-    uploadWorkoutPlanToDB(workoutPlan);
+  const handleSaveClick = async () => {
+    const { data, error } = await uploadWorkoutPlanToDB(workoutPlan);
+
+    if (!error) {
+      setHasStoredWorkout(true);
+      onWorkoutSaved();
+    }
+
     setIsCreatingWorkout((prev: boolean) => !prev);
   };
 
@@ -111,161 +144,167 @@ export default function BuildWorkoutForm() {
     });
   };
 
-  return (
-    <div className="flex justify-center items-center w-full">
-      <div className=" max-w-fit">
-        <Card>
-          <div className="flex justify-center items-center">
-            <input
-              type="text"
-              onChange={(e) => handleTitleChange(e.target.value)}
-              placeholder="Workout Name"
-              className="border px-2 py-1 text-center font-bold"
-            />
-          </div>
-          <div className="flex flex-row justify-around ">
-            <CardHeader className="w-full">
-              <CardTitle>{days[day]}</CardTitle>
-              <CardDescription>
-                Add your exercises for {days[day]}.
-              </CardDescription>
-            </CardHeader>
-            <div className="flex justify-center px-6">
-              <Button
-                onClick={handleSaveClick}
-                className="px-4 py-2 bg-white text-black border-2 hover:text-white"
-              >
-                Upload Workout Plan
-              </Button>
-            </div>
-          </div>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="min-w-full table-auto">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 border">Exercise</th>
-                    <th className="px-4 py-2 border">Sets</th>
-                    <th className="px-4 py-2 border">Reps</th>
-                    <th className="px-4 py-2 border">Weight</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(exercisesByDay[day] || []).map((row, index) => (
-                    <tr key={index}>
-                      <td className="px-4 py-2 border">
-                        <input
-                          type="text"
-                          value={row.exercise}
-                          onChange={(e) =>
-                            handleExerciseInputChange(
-                              index,
-                              "exercise",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Exercise"
-                          // className="w-full border px-2 py-1"
-                        />
-                      </td>
-                      <td className="px-4 py-2 border">
-                        <input
-                          type="number"
-                          value={row.sets}
-                          onChange={(e) =>
-                            handleExerciseInputChange(
-                              index,
-                              "sets",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Sets"
-                          // className="w-full border px-2 py-1"
-                        />
-                      </td>
-                      <td className="px-4 py-2 border">
-                        <input
-                          type="number"
-                          value={row.reps}
-                          onChange={(e) =>
-                            handleExerciseInputChange(
-                              index,
-                              "reps",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Reps"
-                          // className="w-full border px-2 py-1"
-                        />
-                      </td>
-                      <td className="px-4 py-2 border">
-                        <input
-                          type="number"
-                          value={row.weight}
-                          onChange={(e) =>
-                            handleExerciseInputChange(
-                              index,
-                              "weight",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Weight"
-                          // className="w-full border px-2 py-1"
-                        />
-                      </td>
+  // useEffect(() => {
+  //   const returnDailyWorkouts = async () => {
+  //     if (!session || !session.user) return;
 
-                      {index > 0 && (
-                        <td className="px-4 py-2 border">
-                          <svg
-                            width="16px"
-                            height="16px"
-                            strokeWidth="1.5"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            color="#000000"
-                            onClick={() => {
-                              handleDeleteClick(index);
-                            }}
-                          >
-                            <path
-                              d="M6 12H18"
-                              stroke="#000000"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            ></path>
-                          </svg>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="flex flex-row justify-between">
+  //     const data = await fetchDailyWorkouts(session);
+
+  //     if (!data || data.length === 0) {
+  //       setIsLoading(false);
+  //       setHasStoredWorkout(false);
+  //       return;
+  //     }
+
+  //     setHasStoredWorkout(true);
+  //     setIsLoading(false);
+
+  //     const dailyExercises = data[0].days;
+  //     setWorkoutName(data[0].name);
+  //     setExercisesGroupedByDay(dailyExercises);
+  //   };
+  //   returnDailyWorkouts();
+  // }, [session]);
+
+  return (
+    <>
+      {!hasStoredWorkout && !isLoading ? (
+        <Dialog>
+          <div className="flex flex-col h-full justify-center items-center">
+            <p className="pb-2">No workout plans added yet.</p>
+            <DialogTrigger>
+              <Button variant="outline">Add Workout Plan</Button>
+            </DialogTrigger>
+          </div>
+
+          <DialogContent className="w-9/12 max-w-xs sm:max-w-md sm:w-auto sm:max-w-none">
+            <DialogHeader>
+              {/* <DialogTitle>Exercise</DialogTitle> */}
+              <DialogTitle>
+                <div className="flex justify-center items-center py-5">
+                  <Input
+                    type="text"
+                    onChange={(e) => handleTitleChange(e.target.value)}
+                    placeholder="Workout Name"
+                    className="border px-2 py-1 text-center font-bold"
+                  />
+                </div>
+              </DialogTitle>
+              <div className="flex flex-row justify-between items-center">
                 <Button
                   onClick={prevDay}
-                  className="mt-4 px-4 py-2 bg-white text-black border-2 hover:text-white"
+                  className="px-4 bg-white text-black border-2 hover:text-white"
                 >
-                  {"<"}
+                  <ChevronLeft />
                 </Button>
-                <Button
-                  onClick={addRow}
-                  className="mt-4 px-4 py-2 bg-white text-black border-2 hover:text-white"
-                >
-                  Add Row
-                </Button>
+                <DialogTitle>{days[day]}</DialogTitle>
                 <Button
                   onClick={nextDay}
-                  className="mt-4 px-4 py-2 bg-white text-black border-2 hover:text-white"
+                  className="px-4 bg-white text-black border-2 hover:text-white"
                 >
-                  {">"}
+                  <ChevronRight />
                 </Button>
               </div>
+              <DialogDescription>
+                Add your exercises for {days[day]}.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="overflow-x-auto">
+              <div className="min-w-full table-auto">
+                <div>
+                  {(exercisesByDay[day] || []).map((row, index, exercise) => (
+                    <div key={row.id} className="flex flex-row gap-2 my-2">
+                      <Input
+                        className="max-w-30 mr-2"
+                        type="text"
+                        placeholder="Exercise"
+                        value={row.exercise !== null ? row.exercise : ""}
+                        onChange={(e) =>
+                          handleExerciseInputChange(
+                            index,
+                            "exercise",
+                            e.target.value
+                          )
+                        }
+                      />
+                      <Input
+                        className="max-w-18 mr-2"
+                        type="numeric"
+                        placeholder="Sets"
+                        value={row.sets !== null ? row.sets : ""}
+                        onChange={(e) =>
+                          handleExerciseInputChange(
+                            index,
+                            "sets",
+                            e.target.value
+                          )
+                        }
+                      />
+                      <Input
+                        className="max-w-18"
+                        type="numeric"
+                        placeholder="Reps"
+                        value={row.reps !== null ? row.reps : ""}
+                        onChange={(e) =>
+                          handleExerciseInputChange(
+                            index,
+                            "reps",
+                            e.target.value
+                          )
+                        }
+                      />
+                      <Input
+                        className="max-w-18 mr-2"
+                        placeholder="Weight"
+                        type="numeric"
+                        value={row.weight !== null ? row.weight : ""}
+                        onChange={(e) =>
+                          handleExerciseInputChange(
+                            index,
+                            "weight",
+                            e.target.value
+                          )
+                        }
+                      />
+                      {index + 1 === exercise.length && (
+                        <Button
+                          onClick={() => addRow()}
+                          size="sm"
+                          className="px-3"
+                        >
+                          <span className="sr-only">Add Set</span>
+                          <Plus />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+
+            <DialogFooter className="flex flex-row justify-evenly">
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">
+                  Close
+                </Button>
+              </DialogClose>
+              <Button onClick={handleSaveClick}>Save</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        isLoading && (
+          <div className="flex justify-center h-80">
+            <Image
+              src={spinnerBlack}
+              alt="loading-spinner"
+              className=""
+              priority
+            />
+          </div>
+        )
+      )}
+    </>
   );
 }
