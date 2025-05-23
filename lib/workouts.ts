@@ -159,20 +159,22 @@ export const fetchDailyWorkouts = async (session: Session) => {
 
 export const fetchDailyWorkout = async (session, date) => {
   try {
-    console.log(date);
     if (!session || !session.user) return;
 
     const userId = session.user.id;
-    console.log(date);
+
     const { data: dailyWorkout, error: dailyWorkoutError } = await supabase
       .from("daily_workouts")
       .select()
       .eq("date", date)
       .eq("user", userId)
-      .single();
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
+    console.log("1", dailyWorkout);
     if (dailyWorkoutError) {
-      console.log(dailyWorkoutError);
+      console.log("dailyWorkoutError", dailyWorkoutError);
       return null;
     }
 
@@ -181,12 +183,38 @@ export const fetchDailyWorkout = async (session, date) => {
     const { data: exerciseData, error: exerciseError } = await supabase
       .from("exercises")
       .select()
-      .eq("daily_workout_id", dailyWorkoutId)
-      .single();
+      .eq("daily_workout_id", dailyWorkoutId);
+    // .single();
 
-    // console.log(exerciseData);
+    if (exerciseError) {
+      console.log("exerciseError", exerciseError);
+      return null;
+    }
 
-    return dailyWorkout;
+    console.log("Data", exerciseData);
+
+    const exercisesWithSets = await Promise.all(
+      exerciseData.map(async (exercise) => {
+        const { data: sets, error: setsError } = await supabase
+          .from("sets")
+          .select()
+          .eq("exercise_id", exercise?.id);
+
+        if (setsError) {
+          console.log("setsError", setsError);
+          return { ...exercise, sets: [] };
+        }
+
+        return {
+          name: exercise.name,
+          sets: sets.map((set) => ({
+            weight: set.weight,
+            reps: set.reps,
+          })),
+        };
+      })
+    );
+    return exercisesWithSets;
   } catch (err) {
     console.log(err);
   }
@@ -195,19 +223,37 @@ export const fetchDailyWorkout = async (session, date) => {
 export const uploadExerciseToDB = async (session, exercise, date) => {
   try {
     if (!session || !session.user) return;
-    console.log("exercise", exercise);
     const userId = session.user.id;
 
-    const { data: dailyWorkout, error: dailyWorkoutError } = await supabase
+    const { data: existingWorkout, error: fetchError } = await supabase
       .from("daily_workouts")
-      .insert([{ date: date }])
       .select()
-      .single();
+      .eq("date", date)
+      .eq("user", userId)
+      .maybeSingle();
 
-    if (dailyWorkoutError) {
-      console.log("dailyWorkoutError", dailyWorkoutError);
+    if (fetchError) {
+      console.log("Fetch error:", fetchError);
+      return;
     }
 
+    let dailyWorkout = existingWorkout;
+
+    // Insert if not found
+    if (!dailyWorkout) {
+      const { data: newWorkout, error: insertError } = await supabase
+        .from("daily_workouts")
+        .insert([{ date: date, user: userId }]) // ensure user is included
+        .select()
+        .single();
+
+      if (insertError) {
+        console.log("Insert error:", insertError);
+        return;
+      }
+
+      dailyWorkout = newWorkout;
+    }
     const { data: exerciseData, error: exerciseError } = await supabase
       .from("exercises")
       .insert([{ daily_workout_id: dailyWorkout.id, name: exercise.name }])
