@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import spinnerBlack from "@/public/spinner-black.svg";
 import Image from "next/image";
 import { Calendar } from "@/components/ui/calendar";
-import BuildDailyWorkoutForm from "@/components/build-daily-workout-form";
+import DisplayDailyWorkoutCard from "@/components/display-daily-workout-card";
 import {
   Popover,
   PopoverContent,
@@ -113,8 +113,8 @@ export default function Page() {
 
   return (
     <div className="container mx-auto py-10 w-11/12">
-      <div className="flex flex-col justify-center items-center pb-10 sm:flex-row sm:justify-start ">
-        {isMobile ? (
+      <div className="flex flex-col min-h-76 items-start pb-10 sm:flex-row sm:justify-center sm:items-start ">
+        {/* {isMobile ? (
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -144,8 +144,8 @@ export default function Page() {
             onSelect={setDate}
             className="rounded-md border shadow"
           />
-        )}
-        <BuildDailyWorkoutForm date={date} />
+        )} */}
+        <DisplayDailyWorkoutCard date={date} />
       </div>
       <div className="border-t border-gray-200 mb-5" />
 
