@@ -203,8 +203,9 @@ export const fetchDailyWorkout = async (session, date) => {
         const { data: sets, error: setsError } = await supabase
           .from("sets")
           .select()
-          .eq("exercise_id", exercise?.id);
-
+          .eq("exercise_id", exercise?.id)
+          .eq("is_deleted", false);
+        console.log("setData", sets);
         if (setsError) {
           console.log("setsError", setsError);
           return { ...exercise, sets: [] };
@@ -214,6 +215,7 @@ export const fetchDailyWorkout = async (session, date) => {
           id: exercise.id,
           name: exercise.name,
           sets: sets.map((set) => ({
+            setId: set.id,
             weight: set.weight,
             reps: set.reps,
           })),
@@ -309,5 +311,21 @@ export const deleteExercise = async ({ id }) => {
 
   return {
     message: "Exercise deleted",
+  };
+};
+
+export const deleteSet = async (id) => {
+  console.log(id);
+  const { data, error } = await supabase
+    .from("sets")
+    .update({ is_deleted: true })
+    .eq("id", id);
+
+  if (error) {
+    console.log(error);
+  }
+
+  return {
+    message: "Set deleted",
   };
 };

@@ -37,7 +37,7 @@ const labels = [
   "maintenance",
 ];
 
-export function ComboboxDropdownMenu({ exercise }) {
+export function ComboboxDropdownMenu({ exercise, setIsEditing }) {
   const [label, setLabel] = React.useState("feature");
   const [open, setOpen] = React.useState(false);
 
@@ -48,6 +48,11 @@ export function ComboboxDropdownMenu({ exercise }) {
       // Trigger a re-render
     }
   };
+
+  const handleEditClick = async () => {
+    setIsEditing((prev) => ({ ...prev, bool: !prev.bool, exercise: exercise }));
+  };
+
   return (
     <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -62,7 +67,7 @@ export function ComboboxDropdownMenu({ exercise }) {
         <DropdownMenuContent align="end" className="w-[200px]">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuGroup>
-            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleEditClick}>Edit</DropdownMenuItem>
             {/* <DropdownMenuSeparator />
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>Apply label</DropdownMenuSubTrigger>

@@ -3,17 +3,18 @@ import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
 
 import { nanoid } from "nanoid";
 import { useSupabaseSession } from "@/providers/supabase-provider";
-import { fetchDailyWorkout } from "@/lib/workouts";
+import { deleteSet, fetchDailyWorkout } from "@/lib/workouts";
 import { useDate } from "@/providers/date-provider";
 import { Separator } from "./ui/separator";
 import AddDailyExerciseDialog from "./add-daily-exercise-dialog";
-import { Check, MoreHorizontal } from "lucide-react";
+import { Check, MoreHorizontal, Trash2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { ComboboxDropdownMenu } from "./combobox-dropdown-menu";
+import { Input } from "./ui/input";
 
 export default function DisplayDailyWorkoutCard() {
   const [exercises, setExercises] = useState();
-
+  const [isEditing, setIsEditing] = useState({ bool: false, exercise: "" });
   const [isCreatingWorkout, setIsCreatingWorkout] = useState(false);
   const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
   const session = useSupabaseSession();
@@ -34,7 +35,7 @@ export default function DisplayDailyWorkoutCard() {
     const checkIfWorkoutForDate = async () => {
       const data = await fetchDailyWorkout(session, localDateISO);
       console.log("3", data);
-      
+
       if (!data) {
         return setHasStoredWorkout(false);
       }
@@ -45,6 +46,11 @@ export default function DisplayDailyWorkoutCard() {
 
     checkIfWorkoutForDate();
   }, [session, localDateISO]);
+
+  const handleDeleteClick = async (set) => {
+    const data = await deleteSet(set.setId);
+    // re-render
+  };
 
   return (
     <div className="w-full">
@@ -119,7 +125,10 @@ export default function DisplayDailyWorkoutCard() {
                       </div>
                       {/* Options menu */}
                       {/* <MoreHorizontal className="w-5 h-5 text-gray-400" /> */}
-                      <ComboboxDropdownMenu exercise={exercise}/>
+                      <ComboboxDropdownMenu
+                        exercise={exercise}
+                        setIsEditing={setIsEditing}
+                      />
                     </div>
                     {/* <Separator orientation="horizontal" /> */}
                   </CardHeader>
@@ -138,21 +147,53 @@ export default function DisplayDailyWorkoutCard() {
 
                         <div className="text-center">
                           <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
-                            Reps
+                            Weight
                           </div>
-                          <div className="text-md font-bold text-gray-800">
-                            {set.reps}
-                          </div>
+                          {isEditing.bool &&
+                          isEditing.exercise.id === exercise.id ? (
+                            <div className="flex justify-center">
+                              <Input
+                                placeholder={set.weight}
+                                className="text-center max-w-30"
+                              />
+                            </div>
+                          ) : (
+                            <div className="text-md font-bold text-gray-800">
+                              {set.weight}
+                            </div>
+                          )}
                         </div>
 
                         <div className="text-center">
                           <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
-                            Weight
+                            Reps
                           </div>
-                          <div className="text-md font-bold text-gray-800">
-                            {set.weight}
-                          </div>
+                          {isEditing.bool &&
+                          isEditing.exercise.id === exercise.id ? (
+                            <div className="flex justify-center">
+                              <Input
+                                placeholder={set.reps}
+                                className="text-center max-w-30"
+                              />
+                            </div>
+                          ) : (
+                            <div className="text-md font-bold text-gray-800">
+                              {set.reps}
+                            </div>
+                          )}
                         </div>
+                        {isEditing.bool &&
+                          isEditing.exercise.id === exercise.id &&
+                          index !== 0 && (
+                            <Button
+                              onClick={() => handleDeleteClick(set)}
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg p-2"
+                            >
+                              <Trash2 className="w-4 h-4  sm:mr-2" />
+                            </Button>
+                          )}
 
                         {/* <div className="flex justify-center">
                           <div className="w-6 h-6 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
