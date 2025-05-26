@@ -3,11 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
 
 import { nanoid } from "nanoid";
 import { useSupabaseSession } from "@/providers/supabase-provider";
-import { deleteSet, fetchDailyWorkout } from "@/lib/workouts";
+import {
+  addSet,
+  deleteSet,
+  fetchDailyWorkout,
+  updateSet,
+} from "@/lib/workouts";
 import { useDate } from "@/providers/date-provider";
 import { Separator } from "./ui/separator";
 import AddDailyExerciseDialog from "./add-daily-exercise-dialog";
-import { Check, MoreHorizontal, Trash2 } from "lucide-react";
+import { Check, MoreHorizontal, Save, Trash2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { ComboboxDropdownMenu } from "./combobox-dropdown-menu";
 import { Input } from "./ui/input";
@@ -15,6 +20,15 @@ import { Input } from "./ui/input";
 export default function DisplayDailyWorkoutCard() {
   const [exercises, setExercises] = useState();
   const [isEditing, setIsEditing] = useState({ bool: false, exercise: "" });
+  const [isAddingSet, setIsAddingSet] = useState({
+    bool: false,
+    exerciseId: "",
+  });
+  const [tempValues, setTempValues] = useState<{
+    weight: string;
+    reps: string;
+  }>({ weight: "", reps: "" });
+
   const [isCreatingWorkout, setIsCreatingWorkout] = useState(false);
   const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
   const session = useSupabaseSession();
@@ -51,6 +65,59 @@ export default function DisplayDailyWorkoutCard() {
     const data = await deleteSet(set.setId);
     // re-render
   };
+
+  const handleEditInput = async (set, field, value) => {
+    const data = await updateSet(set, field, value);
+
+    // re-render
+  };
+
+  const handleAddSet = async (exercise) => {
+    const data = await addSet(exercise, tempValues);
+    console.log(data);
+  };
+
+  useEffect(() => {
+    console.log(isAddingSet);
+    console.log(exercises);
+    if (!exercises) return;
+
+    if (isAddingSet) {
+      setExercises((prev) =>
+        prev.map((exercise, index) => {
+          if (!isAddingSet.bool) {
+            return {
+              ...exercise,
+              sets: exercise.sets.filter((set) => !set.isNew),
+            };
+          }
+
+          if (exercise.id === isAddingSet.exerciseId) {
+            const hasNewSet = exercise.sets.some((set) => set.isNew);
+            if (hasNewSet) return exercise;
+
+            return {
+              ...exercise,
+              sets: [
+                ...exercise.sets,
+                {
+                  setId: nanoid(),
+                  weight: "",
+                  reps: "",
+                  isNew: true,
+                },
+              ],
+            };
+          }
+          return exercise;
+        })
+      );
+    }
+  }, [isAddingSet]);
+
+  useEffect(() => {
+    console.log(tempValues);
+  }, [tempValues]);
 
   return (
     <div className="w-full">
@@ -108,7 +175,7 @@ export default function DisplayDailyWorkoutCard() {
             {hasStoredWorkout &&
               exercises?.map((exercise) => (
                 <Card
-                  key={nanoid()}
+                  key={exercise.id}
                   className="group relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white rounded-2xl"
                 >
                   <div className="absolute top-0 left-0 right-0 h-1 bg-black" />
@@ -128,6 +195,8 @@ export default function DisplayDailyWorkoutCard() {
                       <ComboboxDropdownMenu
                         exercise={exercise}
                         setIsEditing={setIsEditing}
+                        setIsAddingSet={setIsAddingSet}
+                        isAddingSet={isAddingSet}
                       />
                     </div>
                     {/* <Separator orientation="horizontal" /> */}
@@ -136,7 +205,7 @@ export default function DisplayDailyWorkoutCard() {
                   <CardContent className="space-y-3 pt-0">
                     {exercise.sets.map((set, index) => (
                       <div
-                        key={index}
+                        key={set.id}
                         className="grid grid-cols-[60px_1fr_1fr_40px] gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors"
                       >
                         <div className="text-center">
@@ -155,6 +224,33 @@ export default function DisplayDailyWorkoutCard() {
                               <Input
                                 placeholder={set.weight}
                                 className="text-center max-w-30"
+                                onChange={(e) =>
+                                  handleEditInput(set, "weight", e.target.value)
+                                }
+                              />
+                            </div>
+                          ) : isAddingSet.bool &&
+                            isAddingSet.exerciseId === exercise.id &&
+                            set.isNew ? (
+                            <div className="flex justify-center">
+                              <Input
+                                placeholder="Weight"
+                                className="text-center max-w-30"
+                                // value={tempValues.weight}
+                                // onBlur={(e) =>
+                                //   handleAddSet(
+                                //     exercise,
+                                //     "weight",
+                                //     e.target.value
+                                //   )
+                                // }
+                                value={tempValues.weight}
+                                onChange={(e) =>
+                                  setTempValues((prev) => ({
+                                    ...prev,
+                                    weight: e.target.value,
+                                  }))
+                                }
                               />
                             </div>
                           ) : (
@@ -174,6 +270,30 @@ export default function DisplayDailyWorkoutCard() {
                               <Input
                                 placeholder={set.reps}
                                 className="text-center max-w-30"
+                                onChange={(e) =>
+                                  handleEditInput(set, "reps", e.target.value)
+                                }
+                              />
+                            </div>
+                          ) : isAddingSet.bool &&
+                            isAddingSet.exerciseId === exercise.id &&
+                            set.weight === "" &&
+                            set.reps === "" ? (
+                            <div className="flex justify-center">
+                              <Input
+                                placeholder="Weight"
+                                className="text-center max-w-30"
+                                // value={set.weight}
+                                // onBlur={(e) =>
+                                //   handleAddSet(exercise, "reps", e.target.value)
+                                // }
+                                value={tempValues.reps}
+                                onChange={(e) =>
+                                  setTempValues((prev) => ({
+                                    ...prev,
+                                    reps: e.target.value,
+                                  }))
+                                }
                               />
                             </div>
                           ) : (
@@ -192,6 +312,13 @@ export default function DisplayDailyWorkoutCard() {
                               className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg p-2"
                             >
                               <Trash2 className="w-4 h-4  sm:mr-2" />
+                            </Button>
+                          )}
+                        {isAddingSet.bool &&
+                          isAddingSet.exerciseId === exercise.id &&
+                          set.isNew && (
+                            <Button onClick={() => handleAddSet(exercise)}>
+                              <Save />
                             </Button>
                           )}
 

@@ -204,7 +204,9 @@ export const fetchDailyWorkout = async (session, date) => {
           .from("sets")
           .select()
           .eq("exercise_id", exercise?.id)
-          .eq("is_deleted", false);
+          .eq("is_deleted", false)
+          .order("order", { ascending: true });
+
         console.log("setData", sets);
         if (setsError) {
           console.log("setsError", setsError);
@@ -276,10 +278,11 @@ export const uploadExerciseToDB = async (session, exercise, date) => {
     const exerciseId = exerciseData.id;
     // console.log("1", exerciseData);
 
-    const setsPayload = exercise.sets.map((set) => ({
+    const setsPayload = exercise.sets.map((set, index) => ({
       exercise_id: exerciseId,
       weight: set.weight,
       reps: set.reps,
+      order: index,
     }));
 
     console.log("Payload", setsPayload);
@@ -322,10 +325,56 @@ export const deleteSet = async (id) => {
     .eq("id", id);
 
   if (error) {
-    console.log(error);
+    return error;
   }
 
   return {
     message: "Set deleted",
   };
+};
+
+export const updateSet = async (set, field, value) => {
+  const id = set.setId;
+
+  const { data, error } = await supabase
+    .from("sets")
+    .update({ [field]: value })
+    .eq("id", id)
+    .select();
+
+  console.log(data);
+  if (error) {
+    return error;
+  }
+
+  return {
+    message: "Set updated",
+  };
+};
+
+export const addSet = async (exercise, values) => {
+  const { data, error } = await supabase.from("sets").insert({
+    exercise_id: exercise.id,
+    weight: values.weight || 0,
+    reps: values.reps || 0,
+    order: exercise.sets.length + 1,
+  });
+
+  if (error) {
+    return error;
+  }
+
+  return data;
+  // const { data: exerciseData, error: exerciseError } = await supabase
+  //   .from("exercises")
+  //   .select()
+  //   .eq("id", exercise.id);
+
+  // console.log("E", exerciseError);
+  // if (exerciseError) {
+  //   return exerciseError;
+  // }
+  // console.log("D", exerciseData);
+
+  // return exerciseData;
 };

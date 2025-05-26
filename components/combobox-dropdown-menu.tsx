@@ -37,7 +37,12 @@ const labels = [
   "maintenance",
 ];
 
-export function ComboboxDropdownMenu({ exercise, setIsEditing }) {
+export function ComboboxDropdownMenu({
+  exercise,
+  setIsEditing,
+  setIsAddingSet,
+  isAddingSet,
+}) {
   const [label, setLabel] = React.useState("feature");
   const [open, setOpen] = React.useState(false);
 
@@ -51,6 +56,16 @@ export function ComboboxDropdownMenu({ exercise, setIsEditing }) {
 
   const handleEditClick = async () => {
     setIsEditing((prev) => ({ ...prev, bool: !prev.bool, exercise: exercise }));
+  };
+
+  const handleAddSetClick = () => {
+    setIsAddingSet((prev) => {
+      if (prev.bool && prev.exerciseId === exercise.id) {
+        return { bool: false, exerciseId: null };
+      }
+
+      return { bool: true, exerciseId: exercise.id };
+    });
   };
 
   return (
@@ -67,6 +82,15 @@ export function ComboboxDropdownMenu({ exercise, setIsEditing }) {
         <DropdownMenuContent align="end" className="w-[200px]">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuGroup>
+            {!isAddingSet.bool ? (
+              <DropdownMenuItem onClick={handleAddSetClick}>
+                Add Set
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={handleAddSetClick}>
+                Cancel Set
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={handleEditClick}>Edit</DropdownMenuItem>
             {/* <DropdownMenuSeparator />
             <DropdownMenuSub>
