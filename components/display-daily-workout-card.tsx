@@ -9,6 +9,7 @@ import { Separator } from "./ui/separator";
 import AddDailyExerciseDialog from "./add-daily-exercise-dialog";
 import { Check, MoreHorizontal } from "lucide-react";
 import { Button } from "./ui/button";
+import { ComboboxDropdownMenu } from "./combobox-dropdown-menu";
 
 export default function DisplayDailyWorkoutCard() {
   const [exercises, setExercises] = useState();
@@ -33,14 +34,13 @@ export default function DisplayDailyWorkoutCard() {
     const checkIfWorkoutForDate = async () => {
       const data = await fetchDailyWorkout(session, localDateISO);
       console.log("3", data);
+      
       if (!data) {
         return setHasStoredWorkout(false);
       }
 
       setHasStoredWorkout(true);
       setExercises(data);
-      console.log("HEre", data);
-      console.log("date", date);
     };
 
     checkIfWorkoutForDate();
@@ -67,7 +67,7 @@ export default function DisplayDailyWorkoutCard() {
             <p className="text-gray-500 text-sm">
               Start your workout by adding your first exercise!
             </p>
-          <AddDailyExerciseDialog date={date} />
+            <AddDailyExerciseDialog date={date} />
           </div>
         </div>
       ) : (
@@ -111,7 +111,6 @@ export default function DisplayDailyWorkoutCard() {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                          {" "}
                           {getExerciseInitials(exercise.name)}
                         </div>
                         <h3 className="text-l font-bold text-gray-800">
@@ -119,9 +118,8 @@ export default function DisplayDailyWorkoutCard() {
                         </h3>
                       </div>
                       {/* Options menu */}
-                      <Button className="bg-white p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                        <MoreHorizontal className="w-5 h-5 text-gray-400" />
-                      </Button>
+                      {/* <MoreHorizontal className="w-5 h-5 text-gray-400" /> */}
+                      <ComboboxDropdownMenu exercise={exercise}/>
                     </div>
                     {/* <Separator orientation="horizontal" /> */}
                   </CardHeader>

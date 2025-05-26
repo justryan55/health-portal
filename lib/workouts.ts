@@ -183,7 +183,8 @@ export const fetchDailyWorkout = async (session, date) => {
     const { data: exerciseData, error: exerciseError } = await supabase
       .from("exercises")
       .select()
-      .eq("daily_workout_id", dailyWorkoutId);
+      .eq("daily_workout_id", dailyWorkoutId)
+      .eq("is_deleted", false);
     // .single();
 
     if (exerciseError) {
@@ -192,6 +193,10 @@ export const fetchDailyWorkout = async (session, date) => {
     }
 
     console.log("Data", exerciseData);
+
+    if (exerciseData.length <= 0) {
+      return null;
+    }
 
     const exercisesWithSets = await Promise.all(
       exerciseData.map(async (exercise) => {
@@ -206,6 +211,7 @@ export const fetchDailyWorkout = async (session, date) => {
         }
 
         return {
+          id: exercise.id,
           name: exercise.name,
           sets: sets.map((set) => ({
             weight: set.weight,
@@ -221,6 +227,7 @@ export const fetchDailyWorkout = async (session, date) => {
 };
 
 export const uploadExerciseToDB = async (session, exercise, date) => {
+  console.log(exercise);
   try {
     if (!session || !session.user) return;
     const userId = session.user.id;
@@ -267,7 +274,7 @@ export const uploadExerciseToDB = async (session, exercise, date) => {
     const exerciseId = exerciseData.id;
     // console.log("1", exerciseData);
 
-    const setsPayload = exercise.set.map((set) => ({
+    const setsPayload = exercise.sets.map((set) => ({
       exercise_id: exerciseId,
       weight: set.weight,
       reps: set.reps,
@@ -288,4 +295,19 @@ export const uploadExerciseToDB = async (session, exercise, date) => {
   } catch (err) {
     console.log(err);
   }
+};
+
+export const deleteExercise = async ({ id }) => {
+  const { data, error } = await supabase
+    .from("exercises")
+    .update({ is_deleted: true })
+    .eq("id", id);
+
+  if (error) {
+    console.log(error);
+  }
+
+  return {
+    message: "Exercise deleted",
+  };
 };
