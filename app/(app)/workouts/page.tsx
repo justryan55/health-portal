@@ -29,6 +29,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import AddDailyExerciseDialog from "@/components/add-daily-exercise-dialog";
+import StyledWorkoutPlan from "@/components/styled-workout-plan";
 
 interface WorkoutEntry {
   exercise_name: string;
@@ -40,6 +41,7 @@ interface WorkoutEntry {
 export default function Page() {
   const session = useSupabaseSession();
   const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
+  const [workoutId, setWorkoutId] = useState(null);
   const [exercisesGroupedByDay, setExercisesGroupedByDay] = useState<
     Record<number, WorkoutEntry[]>
   >({});
@@ -79,9 +81,9 @@ export default function Page() {
       return;
     }
 
+    setWorkoutId(data[0].id);
     setHasStoredWorkout(true);
     setIsLoading(false);
-
     const dailyExercises = data[0].days;
     setWorkoutName(data[0].name);
     setExercisesGroupedByDay(dailyExercises);
@@ -103,14 +105,15 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    window.addEventListener("resize", () => {
-      if (window.innerWidth < 640) {
-        setIsMobile(true);
-      } else {
-        setIsMobile(false);
-      }
-    });
-  }, [window.innerWidth]);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <>
@@ -215,15 +218,15 @@ export default function Page() {
               </div>
       </div> */}
         {/* {isCreatingWorkout && <BuildWorkoutForm />} */}
-        <BuildWorkoutForm
+        {/* <BuildWorkoutForm
           onWorkoutSaved={returnDailyWorkouts}
           hasStoredWorkout={hasStoredWorkout}
           setHasStoredWorkout={setHasStoredWorkout}
           isLoading={isLoading}
           setIsLoading={setIsLoading}
-        />
+        /> */}
 
-        {!isCreatingWorkout && hasStoredWorkout && (
+        {/* {!isCreatingWorkout && hasStoredWorkout && (
           <>
             <h1 className="text-center text-lg font-bold mb-2">
               {workoutName}
@@ -253,7 +256,25 @@ export default function Page() {
               </Button>
             </div>
           </>
-        )}
+        )} */}
+
+        <StyledWorkoutPlan
+          hasStoredWorkout={hasStoredWorkout}
+          workoutName={workoutName}
+          days={days}
+          currentDayIndex={currentDayIndex}
+          exercisesGroupedByDay={exercisesGroupedByDay}
+          handlePrevDayClick={handlePrevDayClick}
+          handleNextDayClick={handleNextDayClick}
+          BuildWorkoutForm={BuildWorkoutForm}
+          onWorkoutSaved={returnDailyWorkouts}
+          setHasStoredWorkout={setHasStoredWorkout}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+          isCreatingWorkout={isCreatingWorkout}
+          setExercisesGroupedByDay={setExercisesGroupedByDay}
+          workoutId={workoutId}
+        />
 
         {/* <div className="flex flex-row gap-8">
         <div className="flex-1">

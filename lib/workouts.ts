@@ -34,9 +34,21 @@ export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
 
     const workout_id = workoutData.id;
 
-    const dayKeys = Object.keys(exercisesByDay);
+    const validDayKeys = Object.keys(exercisesByDay).filter((day) => {
+      const exercises = exercisesByDay[day];
+      return (
+        exercises &&
+        exercises.length > 0 &&
+        exercises.some((ex) => ex.exercise && ex.exercise.trim() !== "")
+      );
+    });
 
-    const workoutDaysPayload = dayKeys.map((day) => ({
+    if (validDayKeys.length === 0) {
+      console.log("No valid exercises found for any day");
+      return { data: workoutData, error: null };
+    }
+
+    const workoutDaysPayload = validDayKeys.map((day) => ({
       workout_id,
       day_of_the_week: parseInt(day),
     }));
@@ -51,16 +63,16 @@ export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
       return { data: null, error: workoutDaysError };
     }
 
-    for (const day of dayKeys) {
+    for (const day of validDayKeys) {
       const workout_day = workoutDaysData.find(
         (wd) => wd.day_of_the_week === parseInt(day)
       );
       const entries = exercisesByDay[day].map((ex) => ({
         workout_day_id: workout_day.id,
         exercise_name: ex.exercise,
-        sets: ex.sets || 0,
-        reps: ex.reps || 0,
-        weight: ex.weight || 0,
+        sets: ex.sets || null,
+        reps: ex.reps || null,
+        weight: ex.weight || null,
       }));
 
       const { error: wdeError } = await supabase
@@ -132,8 +144,10 @@ export const fetchDailyWorkouts = async (session: Session) => {
       for (const day of workoutDays) {
         const { data: exercises, error: exercisesError } = await supabase
           .from("workout_day_exercises")
-          .select("exercise_name, sets, reps, weight")
-          .eq("workout_day_id", day.id);
+          .select("id, exercise_name, sets, reps, weight")
+          .eq("workout_day_id", day.id)
+          .eq("is_deleted", false)
+          .order("created_at", { ascending: true });
 
         if (exercisesError) {
           console.error(
@@ -377,4 +391,89 @@ export const addSet = async (exercise, values) => {
   // console.log("D", exerciseData);
 
   // return exerciseData;
+};
+
+export const updateWorkoutPlan = async (exercise, workoutId, day) => {
+  try {
+    let { data: workoutDayData, error: workoutDayError } = await supabase
+      .from("workout_days")
+      .select("id")
+      .eq("workout_id", workoutId)
+      .eq("day_of_the_week", day)
+      .single();
+
+    if (workoutDayError || !workoutDayData) {
+      const { data: insertData, error: insertError } = await supabase
+        .from("workout_days")
+        .insert({
+          workout_id: workoutId,
+          day_of_the_week: day,
+        })
+        .select()
+        .single();
+
+      if (insertError || !insertData) {
+        throw new Error(
+          `Failed to insert workout day: ${
+            insertError?.message || "Unknown error"
+          }`
+        );
+      }
+
+      workoutDayData = insertData;
+    }
+
+    const upsertPayload = {
+      sets: exercise.sets,
+      reps: exercise.reps,
+      weight: exercise.weight,
+      exercise_name: exercise.exercise_name,
+      workout_day_id: workoutDayData.id,
+    };
+
+    if (exercise.id) {
+      upsertPayload.id = exercise.id;
+    }
+
+    const { data, error } = await supabase
+      .from("workout_day_exercises")
+      .upsert(upsertPayload)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Upsert failed: ${error.message}`);
+    }
+
+    return {
+      success: true,
+      data,
+      message: exercise.id
+        ? "Exercise updated successfully"
+        : "Exercise created successfully",
+    };
+  } catch (error) {
+    console.error("Error in updateWorkoutPlanUpsert:", error);
+    return {
+      success: false,
+      error: error.message,
+      message: "Failed to update workout plan",
+    };
+  }
+};
+
+export const deleteExerciseFromWorkout = async (exercise) => {
+  const { data, error } = await supabase
+    .from("workout_day_exercises")
+    .update({ is_deleted: true })
+    .eq("id", exercise.id);
+
+  if (error) {
+    console.log(error);
+    return { success: false, error: error };
+  }
+
+  return {
+    success: true,
+  };
 };
