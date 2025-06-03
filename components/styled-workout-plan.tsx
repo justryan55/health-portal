@@ -113,10 +113,18 @@ export default function StyledWorkoutPlan({
   console.log("!!!!!", currentExercises);
 
   useEffect(() => {
-    window.addEventListener("resize", () => {
+    const handleResize = () => {
       setIsMobile(window.innerWidth < 900);
-    });
-  }, [isMobile]);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const handleDeleteClick = async (exercise, index) => {
     const data = await deleteExerciseFromWorkout(exercise);

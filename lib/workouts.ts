@@ -245,7 +245,7 @@ export const fetchDailyWorkout = async (session, date) => {
 };
 
 export const uploadExerciseToDB = async (session, exercise, date) => {
-  console.log(exercise);
+  console.log("ex", exercise);
   try {
     if (!session || !session.user) return;
     const userId = session.user.id;
@@ -302,14 +302,30 @@ export const uploadExerciseToDB = async (session, exercise, date) => {
     console.log("Payload", setsPayload);
 
     console.log("2", exercise.set);
-    const { data, error } = await supabase
+    const { data: insertedSets, error: setError } = await supabase
       .from("sets")
       .insert(setsPayload)
       .select();
 
-    if (error) {
-      console.log(error);
+    if (setError) {
+      console.log(setError);
+      return;
     }
+
+    const formattedSets = insertedSets.map((set) => ({
+      setId: set.id,
+      weight: set.weight,
+      reps: set.reps,
+    }));
+    return {
+      success: true,
+      exercise: {
+        id: exerciseId,
+        name: exercise.name,
+        sets: formattedSets,
+      },
+    };
+
     console.log(data);
   } catch (err) {
     console.log(err);
@@ -367,30 +383,32 @@ export const updateSet = async (set, field, value) => {
 };
 
 export const addSet = async (exercise, values) => {
-  const { data, error } = await supabase.from("sets").insert({
-    exercise_id: exercise.id,
-    weight: values.weight || 0,
-    reps: values.reps || 0,
-    order: exercise.sets.length + 1,
-  });
+  const { data, error } = await supabase
+    .from("sets")
+    .insert([
+      {
+        exercise_id: exercise.id,
+        weight: values.weight || 0,
+        reps: values.reps || 0,
+        order: exercise.sets.length,
+      },
+    ])
+    .select()
+    .single();
 
   if (error) {
-    return error;
+    console.error("Add set error:", error);
+    return { success: false, error };
   }
 
-  return data;
-  // const { data: exerciseData, error: exerciseError } = await supabase
-  //   .from("exercises")
-  //   .select()
-  //   .eq("id", exercise.id);
-
-  // console.log("E", exerciseError);
-  // if (exerciseError) {
-  //   return exerciseError;
-  // }
-  // console.log("D", exerciseData);
-
-  // return exerciseData;
+  return {
+    success: true,
+    set: {
+      setId: data.id,
+      weight: data.weight,
+      reps: data.reps,
+    },
+  };
 };
 
 export const updateWorkoutPlan = async (exercise, workoutId, day) => {

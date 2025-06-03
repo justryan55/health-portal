@@ -42,6 +42,7 @@ export function ComboboxDropdownMenu({
   setIsEditing,
   setIsAddingSet,
   isAddingSet,
+  onDeleteExercise,
 }) {
   const [label, setLabel] = React.useState("feature");
   const [open, setOpen] = React.useState(false);
@@ -50,7 +51,7 @@ export function ComboboxDropdownMenu({
     const data = await deleteExercise(exercise);
 
     if (data) {
-      // Trigger a re-render
+      onDeleteExercise(exercise.id);
     }
   };
 
@@ -92,43 +93,12 @@ export function ComboboxDropdownMenu({
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={handleEditClick}>Edit</DropdownMenuItem>
-            {/* <DropdownMenuSeparator />
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Apply label</DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="p-0">
-                <Command>
-                  <CommandInput
-                    placeholder="Filter label..."
-                    autoFocus={true}
-                    className="h-9"
-                  />
-                  <CommandList>
-                    <CommandEmpty>No label found.</CommandEmpty>
-                    <CommandGroup>
-                      {labels.map((label) => (
-                        <CommandItem
-                          key={label}
-                          value={label}
-                          onSelect={(value) => {
-                            setLabel(value);
-                            setOpen(false);
-                          }}
-                        >
-                          {label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub> */}
-            {/* <DropdownMenuSeparator /> */}
+
             <DropdownMenuItem
               onClick={handleDeleteClick}
               className="text-red-600"
             >
               Delete
-              {/* <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut> */}
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
