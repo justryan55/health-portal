@@ -27,7 +27,7 @@ export default function DailyExerciseCard() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [exercises, setExercises] = useState<any[] | null>(null);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 760);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [isEditing, setIsEditing] = useState<{ bool: boolean; exercise: any }>({
     bool: false,
@@ -336,6 +336,7 @@ export default function DailyExerciseCard() {
                             onChange={(e) =>
                               handleChange(exercise.id, e.target.value)
                             }
+                            className={`${isMobile && "mr-2"}`}
                           />
                         ) : (
                           <h3 className="text-l font-bold text-gray-800">
@@ -362,6 +363,7 @@ export default function DailyExerciseCard() {
                             onClick={() => uploadExercise(exercise)}
                             size="sm"
                             variant="outline"
+                            className={`${isMobile && "mr-2"}`}
                           >
                             <Save
                               className={`w-4 h-4 ${!isMobile && "mr-2"}`}
@@ -396,16 +398,18 @@ export default function DailyExerciseCard() {
                             </span>
                           </div>
                           <div className="text-center">
-                            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
-                              Weight
-                            </div>
+                            {/* {!isMobile && (
+                              <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
+                                Weight
+                              </div>
+                            )} */}
                             {exercise.isNew ||
                             (isEditing.bool &&
                               isEditing.exercise.id === exercise.id) ? (
                               <div className="flex justify-center">
                                 <Input
-                                  placeholder={String(set.weight)}
-                                  className="text-center max-w-30"
+                                  placeholder={String(set.weight) || "Weight"}
+                                  className="text-center max-w-30 "
                                   onChange={(e) =>
                                     exercise.isNew
                                       ? handleNewExerciseSetChange(
@@ -445,15 +449,17 @@ export default function DailyExerciseCard() {
                             )}
                           </div>
                           <div className="text-center">
-                            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
-                              Reps
-                            </div>
+                            {/* {!isMobile && (
+                              <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
+                                Reps
+                              </div>
+                            )} */}
                             {exercise.isNew ||
                             (isEditing.bool &&
                               isEditing.exercise.id === exercise.id) ? (
                               <div className="flex justify-center">
                                 <Input
-                                  placeholder={String(set.reps)}
+                                  placeholder={String(set.reps) || "Reps"}
                                   className="text-center max-w-30"
                                   onChange={(e) =>
                                     exercise.isNew

@@ -5,7 +5,7 @@ import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { uploadWorkoutPlanToDB } from "@/lib/workouts";
 import { useWorkoutContext } from "@/providers/workout-provider";
-import { Plus, ChevronRight, ChevronLeft, Trash2, Save } from "lucide-react";
+import { Plus, ChevronRight, ChevronLeft, Trash2, Save, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { nanoid } from "nanoid";
 import Image from "next/image";
@@ -78,7 +78,7 @@ export default function WorkoutPlan({
     const updatedExercises = [...dayExercises];
     updatedExercises[index] = {
       ...updatedExercises[index],
-      [field]: field === 'exercise' ? value : Number(value) || null
+      [field]: field === "exercise" ? value : Number(value) || null,
     };
 
     setExercisesByDay({
@@ -121,14 +121,14 @@ export default function WorkoutPlan({
       exercises: Object.fromEntries(
         Object.entries(workoutPlan.exercises).map(([day, exercises]) => [
           day,
-          exercises.map(ex => ({
+          exercises.map((ex) => ({
             ...ex,
             sets: ex.sets ?? 0,
             reps: ex.reps ?? 0,
-            weight: ex.weight ?? 0
-          }))
+            weight: ex.weight ?? 0,
+          })),
         ])
-      )
+      ),
     };
     const { error } = await uploadWorkoutPlanToDB(sanitizedWorkoutPlan);
 
@@ -213,7 +213,7 @@ export default function WorkoutPlan({
           <Input
             type="text"
             onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder="e.g., Summer Strength Training, PPL Split..."
+            placeholder="e.g., PPL Split..."
             value={workoutPlan.workoutName}
             className="mt-2 max-w-md"
           />
@@ -280,7 +280,7 @@ export default function WorkoutPlan({
                             </label>
                             <Input
                               type="text"
-                              placeholder="e.g., Bench Press"
+                              placeholder="Bench Press"
                               value={row.exercise !== null ? row.exercise : ""}
                               onChange={(e) =>
                                 handleExerciseInputChange(
@@ -295,12 +295,14 @@ export default function WorkoutPlan({
 
                           <div className="flex flex-row gap-2 lg:col-span-6">
                             <div>
-                              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
-                                Sets
-                              </label>
+                              {!isMobile && (
+                                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                                  Sets
+                                </label>
+                              )}
                               <Input
                                 type="numeric"
-                                placeholder="3"
+                                placeholder={`${isMobile ? "Sets" : "3"}`}
                                 value={row.sets !== null ? row.sets : ""}
                                 onChange={(e) =>
                                   handleExerciseInputChange(
@@ -313,12 +315,14 @@ export default function WorkoutPlan({
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
-                                Reps
-                              </label>
+                              {!isMobile && (
+                                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                                  Reps
+                                </label>
+                              )}
                               <Input
                                 type="numeric"
-                                placeholder="10"
+                                placeholder={`${isMobile ? "Reps" : "10"}`}
                                 value={row.reps !== null ? row.reps : ""}
                                 onChange={(e) =>
                                   handleExerciseInputChange(
@@ -331,11 +335,14 @@ export default function WorkoutPlan({
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
-                                Weight
-                              </label>
+                              {!isMobile && (
+                                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                                  Weight
+                                </label>
+                              )}
+
                               <Input
-                                placeholder="135"
+                                placeholder={`${isMobile ? "Weight" : "80"}`}
                                 type="numeric"
                                 value={row.weight !== null ? row.weight : ""}
                                 onChange={(e) =>
@@ -369,23 +376,29 @@ export default function WorkoutPlan({
                 </div>
               </div>
 
-              {/* Footer */}
               <div className="border-t border-gray-100 pt-6 mt-8">
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-600 font-medium">
-                    Day {day + 1} of 7 •{" "}
-                    {
-                      (exercisesByDay[day] || []).filter((ex) => ex.exercise)
-                        .length
-                    }{" "}
-                    exercises
-                  </div>
+                <div
+                  className={`flex ${
+                    !isMobile ? "justify-between" : "justify-center"
+                  } items-center`}
+                >
+                  {!isMobile && (
+                    <div className="text-sm text-gray-600 font-medium">
+                      Day {day + 1} of 7 •{" "}
+                      {
+                        (exercisesByDay[day] || []).filter((ex) => ex.exercise)
+                          .length
+                      }{" "}
+                      exercises
+                    </div>
+                  )}
                   <div className="flex gap-3">
                     <Button
                       onClick={handleCancel}
                       variant="outline"
                       className="rounded-xl border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
                     >
+                      <X className="w-4 h-4 mr-2" />
                       Cancel
                     </Button>
                     <Button
