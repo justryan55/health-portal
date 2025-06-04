@@ -15,12 +15,14 @@ interface WorkoutEntry {
   sets: number;
   reps: number;
   weight: number;
+  id: string;
+  keyId: string;
 }
 
 export default function Page() {
   const session = useSupabaseSession();
   const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
-  const [workoutId, setWorkoutId] = useState(null);
+  const [workoutId, setWorkoutId] = useState<string | null>(null);
   const [exercisesGroupedByDay, setExercisesGroupedByDay] = useState<
     Record<number, WorkoutEntry[]>
   >({});
@@ -28,7 +30,6 @@ export default function Page() {
   const { isCreatingWorkout } = useWorkoutContext();
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [date] = useState<Date | undefined>(new Date());
   const [, setIsMobile] = useState(false);
 
   const days = [
@@ -65,7 +66,7 @@ export default function Page() {
     setIsLoading(false);
     const dailyExercises = data[0].days;
     setWorkoutName(data[0].name);
-    setExercisesGroupedByDay(dailyExercises);
+    setExercisesGroupedByDay(dailyExercises as Record<number, WorkoutEntry[]>);
   }, [
     session,
     setIsLoading,
@@ -129,7 +130,7 @@ export default function Page() {
             className="rounded-md border shadow"
           />
         )} */}
-          <DailyExerciseCard date={date} />
+          <DailyExerciseCard />
         </div>
 
         <StyledWorkoutPlan
@@ -147,7 +148,7 @@ export default function Page() {
           setIsLoading={setIsLoading}
           isCreatingWorkout={isCreatingWorkout}
           setExercisesGroupedByDay={setExercisesGroupedByDay}
-          workoutId={workoutId}
+          workoutId={workoutId || ""}
         />
 
         {/* <div className="flex flex-row gap-8">

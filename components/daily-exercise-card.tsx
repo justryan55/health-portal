@@ -157,7 +157,7 @@ export default function DailyExerciseCard() {
         })
       );
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAddingSet]);
 
   useEffect(() => {
@@ -233,7 +233,11 @@ export default function DailyExerciseCard() {
     );
   };
 
-  const uploadExercise = async (exercise: { id: string; name: string; sets: WorkoutSet[] }) => {
+  const uploadExercise = async (exercise: {
+    id: string;
+    name: string;
+    sets: WorkoutSet[];
+  }) => {
     if (!session) return;
     const data = await uploadExerciseToDB(session, exercise, localDateISO);
 
