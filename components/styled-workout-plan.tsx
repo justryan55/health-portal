@@ -150,7 +150,7 @@ export default function StyledWorkoutPlan({
 
       {!isCreatingWorkout && hasStoredWorkout && (
         <>
-          <div className="flex justify-between items-center p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg">
+          <div className="flex justify-between items-center p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg ">
             <div>
               <h1 className="text-2xl font-bold text-white">{workoutName}</h1>
               {!isMobile && (
@@ -159,20 +159,20 @@ export default function StyledWorkoutPlan({
             </div>
             {!isEditingPlan ? (
               <div className="flex gap-2 ">
-                <Button
+                {/* <Button
                   onClick={() => addExerciseToPlan(currentDayIndex)}
                   className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                 >
                   <Plus className="w-4 h-4 inline" />
                   {!isMobile && <>Add Exercise</>}
-                </Button>
+                </Button> */}
                 {currentExercises.length > 0 && (
                   <Button
                     onClick={() => setIsEditingPlan(true)}
                     className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                   >
                     <Edit className="w-4 h-4 inline" />
-                    {!isMobile && <>Edit All</>}
+                    {!isMobile && <>Edit Plan</>}
                   </Button>
                 )}
               </div>
@@ -386,9 +386,9 @@ export default function StyledWorkoutPlan({
           ) : (
             <div className="flex flex-col justify-center items-center min-h-72 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
               <div className="text-center space-y-4 flex flex-col justify-center">
-                <div className="w-16 h-16 mx-auto bg-gray-200 rounded-full flex items-center justify-center">
+                {/* <div className="w-16 h-16 mx-auto bg-gray-200 rounded-full flex items-center justify-center">
                   <Dumbbell className="w-8 h-8 text-gray-400" />
-                </div>
+                </div> */}
                 <p className="text-gray-600 font-medium">
                   No exercises planned for {days[currentDayIndex]}
                 </p>

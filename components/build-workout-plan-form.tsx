@@ -1,26 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { uploadWorkoutPlanToDB } from "@/lib/workouts";
 import { useWorkoutContext } from "@/providers/workout-provider";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTrigger,
-} from "./ui/dialog";
-import { Plus, ChevronRight, ChevronLeft, Trash2, Save, X } from "lucide-react";
+  Plus,
+  ChevronRight,
+  ChevronLeft,
+  Trash2,
+  Save,
+} from "lucide-react";
 import { Input } from "./ui/input";
 import { nanoid } from "nanoid";
-import { useSupabaseSession } from "@/providers/supabase-provider";
 import Image from "next/image";
 import spinnerBlack from "@/public/spinner-black.svg";
-import { useDate } from "@/providers/date-provider";
-import { Separator } from "./ui/separator";
 
 interface Exercise {
   id: string;
@@ -42,6 +37,8 @@ export default function BuildWorkoutForm({
   setIsLoading,
 }) {
   const { setIsCreatingWorkout } = useWorkoutContext();
+  const [isBuilding, setIsBuilding] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 760);
 
   const [exercisesByDay, setExercisesByDay] = useState<ExercisesByDayProps>({
     0: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
@@ -95,7 +92,7 @@ export default function BuildWorkoutForm({
     const dayExercises = exercisesByDay[day] || [];
     const updatedExercises = [
       ...dayExercises,
-      { exercise: "", sets: "", reps: "", weight: "" },
+      { id: nanoid(), exercise: "", sets: null, reps: null, weight: null },
     ];
 
     setExercisesByDay({
@@ -113,6 +110,7 @@ export default function BuildWorkoutForm({
   };
 
   const handleSaveClick = async () => {
+    setIsLoading(true);
     const { data, error } = await uploadWorkoutPlanToDB(workoutPlan);
 
     if (!error) {
@@ -121,11 +119,12 @@ export default function BuildWorkoutForm({
     }
 
     setIsCreatingWorkout((prev: boolean) => !prev);
+    setIsBuilding(false);
+    setIsLoading(false);
   };
 
   const handleDeleteClick = (index: number) => {
     const dayExercises = exercisesByDay[day] || [];
-
     dayExercises.splice(index, 1);
 
     setExercisesByDay({
@@ -134,73 +133,130 @@ export default function BuildWorkoutForm({
     });
   };
 
-  return (
-    <>
-      {!hasStoredWorkout && !isLoading ? (
-        <Dialog>
-          <div className="flex flex-col justify-center items-center min-h-72 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-            <div className="text-center space-y-4">
-              <p className="text-gray-600 font-medium">
-                No workout plan added yet.
-              </p>
-              <p className="text-gray-500 text-sm">
-                Start your workout by adding your first exercise!
-              </p>
-              <DialogTrigger>
-                <Button variant="outline">Add Workout Plan</Button>
-              </DialogTrigger>
-            </div>
-          </div>
-          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-hidden bg-white rounded-2xl border-0 shadow-2xl md:max-w-3xl">
-            <DialogHeader className="space-y-6 p-6 pt-1 md:p-6 text-black rounded-t-2xl  pb-0 md:pb-0">
-              <div className="space-y-2">
-                <Input
-                  type="text"
-                  onChange={(e) => handleTitleChange(e.target.value)}
-                  placeholder="Enter your workout name..."
-                  className="text-center font-semibold text-sm md:text-xl"
-                />
-              </div>
+  const handleStartBuilding = () => {
+    setIsBuilding(true);
+  };
 
-              <CardContent className="p-0 md:p-4 md:pb-0 ">
-                <div className="flex justify-between items-center">
-                  <Button onClick={prevDay} variant="ghost">
-                    <ChevronLeft className="w-5 h-5" />
-                  </Button>
+  const handleCancel = () => {
+    setIsBuilding(false);
 
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold text-black">
-                      {days[day]}
-                    </h3>
-                    <p className="text-black/80 text-sm">Day {day + 1} of 7</p>
+    setWorkoutPlan({
+      workoutName: "",
+      exercises: exercisesByDay,
+    });
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 900);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[320px] bg-white rounded-2xl border border-gray-100">
+        <Image src={spinnerBlack} alt="loading-spinner" className="" priority />
+      </div>
+    );
+  }
+
+  if (!hasStoredWorkout && !isBuilding) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-72 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+        <div className="text-center space-y-4">
+          <p className="text-gray-600 font-medium">
+            No workout plan added yet.
+          </p>
+          <p className="text-gray-500 text-sm">
+            Start your workout by adding your first exercise!
+          </p>
+          <Button onClick={handleStartBuilding} variant="outline">
+            Add Workout Plan
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isBuilding) {
+    return (
+      <div>
+        <div className="flex flex-col justify-between items-start p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg  ">
+          <h1 className="text-2xl font-bold text-white">Workout Plan Name</h1>
+          <Input
+            type="text"
+            onChange={(e) => handleTitleChange(e.target.value)}
+            placeholder="e.g., Summer Strength Training, PPL Split..."
+            value={workoutPlan.workoutName}
+            className="mt-2 max-w-md"
+          />
+        </div>
+        <Card className=" mt-5">
+          <CardContent className="p-6">
+            <div className="space-y-6">
+              <Card className="border border-gray-100 bg-gray-50/50 shadow-none">
+                <CardContent>
+                  <div className="flex justify-between items-center">
+                    <Button onClick={prevDay} variant="ghost" size="sm">
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      {!isMobile && <span>Previous</span>}
+                    </Button>
+
+                    <div className="text-center">
+                      <h3 className="text-2xl font-bold text-gray-900">
+                        {days[day]}
+                      </h3>
+                      {/* <p className="text-gray-500 text-sm font-medium">
+                        Day {day + 1} of 7
+                      </p> */}
+                    </div>
+
+                    <Button onClick={nextDay} variant="ghost" size="sm">
+                      {!isMobile && <span>Next</span>}
+
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
                   </div>
+                </CardContent>
+              </Card>
 
-                  <Button onClick={nextDay} variant="ghost">
-                    <ChevronRight className="w-5 h-5" />
-                  </Button>
-                </div>
-              </CardContent>
-            </DialogHeader>
-            <Separator orientation="horizontal" />
-
-            <div className="p-6 overflow-y-auto max-h-[50vh] pt-0">
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4 md:mb-0">
-                    Exercises
+                <div
+                  className={`flex ${
+                    isMobile && "flex-col"
+                  } items-center justify-between`}
+                >
+                  <h4 className="text-xl pl-1 font-bold text-gray-900">
+                    Exercises for {days[day]}
                   </h4>
+                  <Button
+                    onClick={addRow}
+                    variant="outline"
+                    className={`${isMobile && "mt-2"}`}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Exercise
+                  </Button>
                 </div>
 
                 <div className="space-y-4">
-                  {(exercisesByDay[day] || []).map((row, index, exercise) => (
+                  {(exercisesByDay[day] || []).map((row, index) => (
                     <Card
                       key={row.id}
-                      className="border border-gray-200 rounded-xl shadow-sm transition-all duration-200 overflow-hidden p-0 border-none pt-0 pb-0 shadow-none"
+                      className="border border-gray-100 bg-white shadow-none "
                     >
-                      <CardContent className="p-4 pt-0 pb-4 md:pb-1">
-                        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-                          <div className="col-span-2">
-                            <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-2">
+                      <CardContent>
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                          <div className="lg:col-span-5">
+                            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
                               Exercise
                             </label>
                             <Input
@@ -214,13 +270,13 @@ export default function BuildWorkoutForm({
                                   e.target.value
                                 )
                               }
-                              className="rounded-lg border-gray-200 focus:border-blue-400 focus:ring-blue-400 "
+                              className="border-gray-200 "
                             />
                           </div>
 
-                          <div className="flex gap-2 items-end col-span-3">
+                          <div className="flex flex-row gap-2 lg:col-span-6">
                             <div>
-                              <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-2">
+                              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
                                 Sets
                               </label>
                               <Input
@@ -234,12 +290,11 @@ export default function BuildWorkoutForm({
                                     e.target.value
                                   )
                                 }
-                                className="rounded-lg border-gray-200 max-w-full"
+                                className="border-gray-200 "
                               />
                             </div>
-
                             <div>
-                              <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-2">
+                              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
                                 Reps
                               </label>
                               <Input
@@ -253,362 +308,83 @@ export default function BuildWorkoutForm({
                                     e.target.value
                                   )
                                 }
-                                className="rounded-lg border-gray-200 max-w-full"
+                                className="border-gray-200 "
                               />
                             </div>
-                            <div className="flex gap-2 items-end">
-                              <div className="flex-1">
-                                <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-2">
-                                  Weight
-                                </label>
-                                <Input
-                                  placeholder="135"
-                                  type="numeric"
-                                  value={row.weight !== null ? row.weight : ""}
-                                  onChange={(e) =>
-                                    handleExerciseInputChange(
-                                      index,
-                                      "weight",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="rounded-lg border-gray-200 max-w-full"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex justify-between sm:justify-auto">
                             <div>
-                              {(exercisesByDay[day] || []).length > 1 ? (
-                                <Button
-                                  onClick={() => handleDeleteClick(index)}
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg p-2"
-                                >
-                                  <Trash2 className="w-4 h-4  sm:mr-2" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  onClick={addRow}
-                                  size="sm"
-                                  className="px-3 max-w-max"
-                                >
-                                  <span className="sr-only">Add Set</span>
-                                  <Plus />
-                                </Button>
-                              )}
-                            </div>
-                            {index + 1 === exercise.length &&
-                              (exercisesByDay[day] || []).length > 1 && (
-                                <Button
-                                  onClick={addRow}
-                                  size="sm"
-                                  className="px-3 max-w-max"
-                                >
-                                  <span className="sr-only">Add Set</span>
-                                  <Plus />
-                                </Button>
-                              )}
+                              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                                Weight
+                              </label>
+                              <Input
+                                placeholder="135"
+                                type="numeric"
+                                value={row.weight !== null ? row.weight : ""}
+                                onChange={(e) =>
+                                  handleExerciseInputChange(
+                                    index,
+                                    "weight",
+                                    e.target.value
+                                  )
+                                }
+                                className="border-gray-200 "
+                              />
+                            </div>{" "}
+                          </div>
+
+                          <div className="lg:col-span-1 flex justify-center">
+                            {(exercisesByDay[day] || []).length > 1 && (
+                              <Button
+                                onClick={() => handleDeleteClick(index)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl w-10 h-10 p-0"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
+              </div>
 
-                {/* Empty state for exercises */}
-                {/* {(exercisesByDay[day] || []).length === 0 && (
-                  <Card className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center">
-                    <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-4">
-                      No exercises added for {days[day]}
-                    </p>
+              {/* Footer */}
+              <div className="border-t border-gray-100 pt-6 mt-8">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-600 font-medium">
+                    Day {day + 1} of 7 •{" "}
+                    {
+                      (exercisesByDay[day] || []).filter((ex) => ex.exercise)
+                        .length
+                    }{" "}
+                    exercises
+                  </div>
+                  <div className="flex gap-3">
                     <Button
-                      onClick={addRow}
+                      onClick={handleCancel}
                       variant="outline"
-                      className="rounded-lg"
+                      className="rounded-xl border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Your First Exercise
+                      Cancel
                     </Button>
-                  </Card>
-                )} */}
+                    <Button
+                      onClick={handleSaveClick}
+                      className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Plan
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
+          </CardContent>
+        </Card>{" "}
+      </div>
+    );
+  }
 
-            <DialogFooter className="p-6">
-              <div className="flex justify-between w-full gap-4">
-                <DialogClose asChild>
-                  <Button
-                    variant="outline"
-                    className="rounded-xl px-6 py-2 font-medium border-gray-200 hover:bg-gray-100"
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Cancel
-                  </Button>
-                </DialogClose>
-                <Button onClick={handleSaveClick}>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save
-                </Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      ) : (
-        isLoading && (
-          <div className="flex justify-center h-80">
-            <Image
-              src={spinnerBlack}
-              alt="loading-spinner"
-              className=""
-              priority
-            />
-          </div>
-        )
-      )}
-    </>
-  );
+  return null;
 }
-
-
-
-
-
-// return (
-//     <>
-//       {!hasStoredWorkout && !isLoading ? (
-//         <Dialog>
-//           <div className="flex flex-col justify-center items-center min-h-72 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-//             <div className="text-center space-y-4">
-//               <p className="text-gray-600 font-medium">
-//                 No workout plan added yet.
-//               </p>
-//               <p className="text-gray-500 text-sm">
-//                 Start your workout by adding your first exercise!
-//               </p>
-//               <DialogTrigger>
-//                 <Button variant="outline">Add Workout Plan</Button>
-//               </DialogTrigger>
-//             </div>
-//           </div>
-//           <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-hidden bg-white rounded-2xl border-0 shadow-2xl md:max-w-3xl">
-//             <DialogHeader className="space-y-6 p-6 pt-1 md:p-6 text-black rounded-t-2xl  pb-0 md:pb-0">
-//               <div className="space-y-2">
-//                 <Input
-//                   type="text"
-//                   onChange={(e) => handleTitleChange(e.target.value)}
-//                   placeholder="Enter your workout name..."
-//                   className="text-center font-semibold text-sm md:text-xl"
-//                 />
-//               </div>
-
-//               <CardContent className="p-0 md:p-4 md:pb-0 ">
-//                 <div className="flex justify-between items-center">
-//                   <Button onClick={prevDay} variant="ghost">
-//                     <ChevronLeft className="w-5 h-5" />
-//                   </Button>
-
-//                   <div className="text-center">
-//                     <h3 className="text-xl font-bold text-black">
-//                       {days[day]}
-//                     </h3>
-//                     <p className="text-black/80 text-sm">Day {day + 1} of 7</p>
-//                   </div>
-
-//                   <Button onClick={nextDay} variant="ghost">
-//                     <ChevronRight className="w-5 h-5" />
-//                   </Button>
-//                 </div>
-//               </CardContent>
-//             </DialogHeader>
-//             <Separator orientation="horizontal" />
-
-//             <div className="p-6 overflow-y-auto max-h-[50vh] pt-0">
-//               <div className="space-y-4">
-//                 <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-//                   <h4 className="text-lg font-semibold text-gray-800 mb-4 md:mb-0">
-//                     Exercises
-//                   </h4>
-//                 </div>
-
-//                 <div className="space-y-4">
-//                   {(exercisesByDay[day] || []).map((row, index, exercise) => (
-//                     <Card
-//                       key={row.id}
-//                       className="border border-gray-200 rounded-xl shadow-sm transition-all duration-200 overflow-hidden p-0 border-none pt-0 pb-0 shadow-none"
-//                     >
-//                       <CardContent className="p-4 pt-0 pb-4 md:pb-1">
-//                         <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-//                           <div className="col-span-2">
-//                             <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-2">
-//                               Exercise
-//                             </label>
-//                             <Input
-//                               type="text"
-//                               placeholder="e.g., Bench Press"
-//                               value={row.exercise !== null ? row.exercise : ""}
-//                               onChange={(e) =>
-//                                 handleExerciseInputChange(
-//                                   index,
-//                                   "exercise",
-//                                   e.target.value
-//                                 )
-//                               }
-//                               className="rounded-lg border-gray-200 focus:border-blue-400 focus:ring-blue-400 "
-//                             />
-//                           </div>
-
-//                           <div className="flex gap-2 items-end col-span-3">
-//                             <div>
-//                               <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-2">
-//                                 Sets
-//                               </label>
-//                               <Input
-//                                 type="numeric"
-//                                 placeholder="3"
-//                                 value={row.sets !== null ? row.sets : ""}
-//                                 onChange={(e) =>
-//                                   handleExerciseInputChange(
-//                                     index,
-//                                     "sets",
-//                                     e.target.value
-//                                   )
-//                                 }
-//                                 className="rounded-lg border-gray-200 max-w-full"
-//                               />
-//                             </div>
-
-//                             <div>
-//                               <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-2">
-//                                 Reps
-//                               </label>
-//                               <Input
-//                                 type="numeric"
-//                                 placeholder="10"
-//                                 value={row.reps !== null ? row.reps : ""}
-//                                 onChange={(e) =>
-//                                   handleExerciseInputChange(
-//                                     index,
-//                                     "reps",
-//                                     e.target.value
-//                                   )
-//                                 }
-//                                 className="rounded-lg border-gray-200 max-w-full"
-//                               />
-//                             </div>
-//                             <div className="flex gap-2 items-end">
-//                               <div className="flex-1">
-//                                 <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-2">
-//                                   Weight
-//                                 </label>
-//                                 <Input
-//                                   placeholder="135"
-//                                   type="numeric"
-//                                   value={row.weight !== null ? row.weight : ""}
-//                                   onChange={(e) =>
-//                                     handleExerciseInputChange(
-//                                       index,
-//                                       "weight",
-//                                       e.target.value
-//                                     )
-//                                   }
-//                                   className="rounded-lg border-gray-200 max-w-full"
-//                                 />
-//                               </div>
-//                             </div>
-//                           </div>
-//                           <div className="flex justify-between sm:justify-auto">
-//                             <div>
-//                               {(exercisesByDay[day] || []).length > 1 ? (
-//                                 <Button
-//                                   onClick={() => handleDeleteClick(index)}
-//                                   variant="ghost"
-//                                   size="sm"
-//                                   className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg p-2"
-//                                 >
-//                                   <Trash2 className="w-4 h-4  sm:mr-2" />
-//                                 </Button>
-//                               ) : (
-//                                 <Button
-//                                   onClick={addRow}
-//                                   size="sm"
-//                                   className="px-3 max-w-max"
-//                                 >
-//                                   <span className="sr-only">Add Set</span>
-//                                   <Plus />
-//                                 </Button>
-//                               )}
-//                             </div>
-//                             {index + 1 === exercise.length &&
-//                               (exercisesByDay[day] || []).length > 1 && (
-//                                 <Button
-//                                   onClick={addRow}
-//                                   size="sm"
-//                                   className="px-3 max-w-max"
-//                                 >
-//                                   <span className="sr-only">Add Set</span>
-//                                   <Plus />
-//                                 </Button>
-//                               )}
-//                           </div>
-//                         </div>
-//                       </CardContent>
-//                     </Card>
-//                   ))}
-//                 </div>
-
-//                 {/* Empty state for exercises */}
-//                 {/* {(exercisesByDay[day] || []).length === 0 && (
-//                   <Card className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center">
-//                     <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-//                     <p className="text-gray-500 mb-4">
-//                       No exercises added for {days[day]}
-//                     </p>
-//                     <Button
-//                       onClick={addRow}
-//                       variant="outline"
-//                       className="rounded-lg"
-//                     >
-//                       <Plus className="w-4 h-4 mr-2" />
-//                       Add Your First Exercise
-//                     </Button>
-//                   </Card>
-//                 )} */}
-//               </div>
-//             </div>
-
-//             <DialogFooter className="p-6">
-//               <div className="flex justify-between w-full gap-4">
-//                 <DialogClose asChild>
-//                   <Button
-//                     variant="outline"
-//                     className="rounded-xl px-6 py-2 font-medium border-gray-200 hover:bg-gray-100"
-//                   >
-//                     <X className="w-4 h-4 mr-2" />
-//                     Cancel
-//                   </Button>
-//                 </DialogClose>
-//                 <Button onClick={handleSaveClick}>
-//                   <Save className="w-4 h-4 mr-2" />
-//                   Save
-//                 </Button>
-//               </div>
-//             </DialogFooter>
-//           </DialogContent>
-//         </Dialog>
-//       ) : (
-//         isLoading && (
-//           <div className="flex justify-center h-80">
-//             <Image
-//               src={spinnerBlack}
-//               alt="loading-spinner"
-//               className=""
-//               priority
-//             />
-//           </div>
-//         )
-//       )}
-//     </>
-//   );

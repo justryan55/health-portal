@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
+import { Card, CardContent, CardHeader } from "./ui/card";
 
 import { nanoid } from "nanoid";
 import { useSupabaseSession } from "@/providers/supabase-provider";
@@ -11,9 +11,7 @@ import {
   uploadExerciseToDB,
 } from "@/lib/workouts";
 import { useDate } from "@/providers/date-provider";
-import { Separator } from "./ui/separator";
-import AddDailyExerciseDialog from "./add-daily-exercise-dialog";
-import { Check, MoreHorizontal, Plus, Save, Trash2 } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import { Button } from "./ui/button";
 import { ComboboxDropdownMenu } from "./combobox-dropdown-menu";
 import { Input } from "./ui/input";
@@ -226,9 +224,9 @@ export default function DisplayDailyWorkoutCard() {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full ">
       {!isCreatingWorkout && !hasStoredWorkout ? (
-        <div className="flex flex-col justify-center items-center min-h-72 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+        <div className="flex flex-col justify-center items-center min-h-72 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 ">
           <div className="text-center space-y-4">
             {/* <div className="w-16 h-16 mx-auto bg-gray-200 rounded-full flex items-center justify-center">
               <span className="text-2xl">💪</span>
@@ -244,12 +242,12 @@ export default function DisplayDailyWorkoutCard() {
               className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
             >
               <Plus className="w-4 h-4 inline" />
-              {!isMobile && <>Add Exercise</>}
+              Add Exercise
             </Button>
           </div>
         </div>
       ) : (
-        <div className="flex justify-between items-center p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg">
+        <div className="flex justify-between items-center p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg ">
           <div>
             <h1 className="text-2xl font-bold text-white">Today's Workout</h1>
             <p className="text-gray-300 font-medium">
@@ -271,7 +269,7 @@ export default function DisplayDailyWorkoutCard() {
         </div>
       )}
 
-      <div className="flex flex-col w-full mt-4 justify-center sm:pl-4 sm:justify-start">
+      <div className="flex flex-col w-full mt-4 justify-center sm:pl-4 sm:justify-start ">
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {hasStoredWorkout &&

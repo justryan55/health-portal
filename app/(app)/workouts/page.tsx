@@ -132,7 +132,7 @@ export default function Page() {
         <AddDailyExerciseDialog date={date} />
       </div> */}
       <div className="container mx-auto py-10 w-11/12">
-        <div className="flex flex-col min-h-76 items-start pb-10 sm:flex-row sm:justify-center sm:items-start ">
+        <div className="flex flex-col min-h-76 items-start pb-10 sm:flex-row sm:justify-center sm:items-start  ">
           {/* {isMobile ? (
           <Popover>
             <PopoverTrigger asChild>
