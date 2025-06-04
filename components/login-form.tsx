@@ -227,6 +227,7 @@ export function LoginForm({
                               type="text"
                               placeholder="Full Name"
                               {...field}
+                              value={field.value as string}
                             />
                           </FormControl>
                           <FormMessage />
