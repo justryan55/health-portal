@@ -15,12 +15,21 @@ import { deleteExerciseFromWorkout, updateWorkoutPlan } from "@/lib/workouts";
 
 
 interface Exercise {
+  id: string;
   keyId: string;
   isNew?: boolean;
   exercise_name: string;
-  sets: string;
-  reps: string;
-  weight: string;
+  sets: number;
+  reps: number;
+  weight: number;
+}
+
+interface BuildWorkoutFormProps {
+  onWorkoutSaved: () => void;
+  hasStoredWorkout: boolean;
+  setHasStoredWorkout: (value: boolean) => void;
+  isLoading: boolean;
+  setIsLoading: (value: boolean) => void;
 }
 
 interface StyledWorkoutPlanProps {
@@ -31,7 +40,7 @@ interface StyledWorkoutPlanProps {
   exercisesGroupedByDay: Record<number, Exercise[]>;
   handlePrevDayClick: () => void;
   handleNextDayClick: () => void;
-  BuildWorkoutForm: React.ComponentType<any>;
+  BuildWorkoutForm: React.ComponentType<BuildWorkoutFormProps>;
   onWorkoutSaved: () => void;
   setHasStoredWorkout: (value: boolean) => void;
   isLoading: boolean;
@@ -73,23 +82,24 @@ export default function StyledWorkoutPlan({
   const currentExercises = exercisesGroupedByDay[currentDayIndex] || [];
 
   const addExerciseToPlan = (day: number) => {
-    setExercisesGroupedByDay((prev) => ({
-      ...prev,
-      [day]: [
-        ...(prev[day] || []),
-        {
-          keyId: nanoid(),
-          isNew: true,
-          exercise_name: "",
-          sets: "",
-          reps: "",
-          weight: "",
-        },
-      ],
-    }));
-  };
+      setExercisesGroupedByDay((prev) => ({
+        ...prev,
+        [day]: [
+          ...(prev[day] || []),
+          {
+            id: nanoid(),
+            keyId: nanoid(),
+            isNew: true,
+            exercise_name: "",
+            sets: 0,
+            reps: 0,
+            weight: 0,
+          },
+        ],
+      }));
+    };
 
-  const uploadExerciseToDB = async (exercise, exerciseIndex) => {
+  const uploadExerciseToDB = async (exercise: Exercise, exerciseIndex: number) => {
     try {
       await updateWorkoutPlan(exercise, workoutId, currentDayIndex);
 
@@ -129,7 +139,7 @@ export default function StyledWorkoutPlan({
     setIsEditingPlan(false);
   };
 
-  const updateExercise = (day: number, index: number, field: string, value: string) => {
+  const updateExercise = (day: number, index: number, field: string, value: string | number) => {
     setExercisesGroupedByDay((prev) => ({
       ...prev,
       [day]: prev[day].map((exercise, i) =>
@@ -154,7 +164,7 @@ export default function StyledWorkoutPlan({
     };
   }, []);
 
-  const handleDeleteClick = async (exercise, index) => {
+  const handleDeleteClick = async (exercise: Exercise, index: number) => {
     const data = await deleteExerciseFromWorkout(exercise);
     console.log(data);
 
@@ -339,11 +349,11 @@ export default function StyledWorkoutPlan({
                                 value={exercise.sets || ""}
                                 onChange={(e) =>
                                   updateExercise(
-                                    currentDayIndex,
-                                    index,
-                                    "sets",
-                                    e.target.value
-                                  )
+                                      currentDayIndex,
+                                      index,
+                                      "sets",
+                                      Number(e.target.value)
+                                    )
                                 }
                               />
                             ) : (
@@ -365,11 +375,11 @@ export default function StyledWorkoutPlan({
                                 value={exercise.reps || ""}
                                 onChange={(e) =>
                                   updateExercise(
-                                    currentDayIndex,
-                                    index,
-                                    "reps",
-                                    e.target.value
-                                  )
+                                      currentDayIndex,
+                                      index,
+                                      "reps",
+                                      Number(e.target.value)
+                                    )
                                 }
                               />
                             ) : (
@@ -391,11 +401,11 @@ export default function StyledWorkoutPlan({
                                 value={exercise.weight || ""}
                                 onChange={(e) =>
                                   updateExercise(
-                                    currentDayIndex,
-                                    index,
-                                    "weight",
-                                    e.target.value
-                                  )
+                                      currentDayIndex,
+                                      index,
+                                      "weight",
+                                      Number(e.target.value)
+                                    )
                                 }
                               />
                             ) : (
