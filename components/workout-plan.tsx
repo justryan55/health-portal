@@ -5,13 +5,7 @@ import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { uploadWorkoutPlanToDB } from "@/lib/workouts";
 import { useWorkoutContext } from "@/providers/workout-provider";
-import {
-  Plus,
-  ChevronRight,
-  ChevronLeft,
-  Trash2,
-  Save,
-} from "lucide-react";
+import { Plus, ChevronRight, ChevronLeft, Trash2, Save } from "lucide-react";
 import { Input } from "./ui/input";
 import { nanoid } from "nanoid";
 import Image from "next/image";
@@ -29,13 +23,21 @@ type ExercisesByDayProps = {
   [day: number]: Exercise[];
 };
 
-export default function BuildWorkoutForm({
+interface WorkoutPlanProps {
+  onWorkoutSaved: () => void;
+  hasStoredWorkout: boolean;
+  setHasStoredWorkout: (value: boolean) => void;
+  isLoading: boolean;
+  setIsLoading: (value: boolean) => void;
+}
+
+export default function WorkoutPlan({
   onWorkoutSaved,
   hasStoredWorkout,
   setHasStoredWorkout,
   isLoading,
   setIsLoading,
-}) {
+}: WorkoutPlanProps) {
   const { setIsCreatingWorkout } = useWorkoutContext();
   const [isBuilding, setIsBuilding] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 760);
@@ -69,12 +71,15 @@ export default function BuildWorkoutForm({
 
   const handleExerciseInputChange = (
     index: number,
-    field: string,
+    field: keyof Exercise,
     value: string
   ) => {
     const dayExercises = exercisesByDay[day] || [];
     const updatedExercises = [...dayExercises];
-    updatedExercises[index][field] = value;
+    updatedExercises[index] = {
+      ...updatedExercises[index],
+      [field]: field === 'exercise' ? value : Number(value) || null
+    };
 
     setExercisesByDay({
       ...exercisesByDay,
@@ -111,7 +116,21 @@ export default function BuildWorkoutForm({
 
   const handleSaveClick = async () => {
     setIsLoading(true);
-    const { data, error } = await uploadWorkoutPlanToDB(workoutPlan);
+    const sanitizedWorkoutPlan = {
+      ...workoutPlan,
+      exercises: Object.fromEntries(
+        Object.entries(workoutPlan.exercises).map(([day, exercises]) => [
+          day,
+          exercises.map(ex => ({
+            ...ex,
+            sets: ex.sets ?? 0,
+            reps: ex.reps ?? 0,
+            weight: ex.weight ?? 0
+          }))
+        ])
+      )
+    };
+    const { error } = await uploadWorkoutPlanToDB(sanitizedWorkoutPlan);
 
     if (!error) {
       setHasStoredWorkout(true);

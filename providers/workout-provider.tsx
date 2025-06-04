@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, { createContext,  useContext, useState, Dispatch, SetStateAction, PropsWithChildren } from "react";
 
 type WorkoutContextType = {
   isCreatingWorkout: boolean;
@@ -12,7 +12,7 @@ const WorkoutContext = createContext<WorkoutContextType>({
   setIsCreatingWorkout: () => {},
 });
 
-export const WorkoutProvider = ({ children }) => {
+export const WorkoutProvider = ({ children }: PropsWithChildren) => {
   const [isCreatingWorkout, setIsCreatingWorkout] = useState(false);
 
   return (

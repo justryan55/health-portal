@@ -96,7 +96,7 @@ export function LoginForm({
       setIsLoading(true);
 
       if (pathname === "/auth/register") {
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email: values.email,
           password: values.password,
           options: {
@@ -105,8 +105,6 @@ export function LoginForm({
             },
           },
         });
-
-     
 
         if (error) {
           setAuthError(error.message);
@@ -122,7 +120,7 @@ export function LoginForm({
       }
 
       if (pathname === "/auth/login") {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email: values.email,
           password: values.password,
         });

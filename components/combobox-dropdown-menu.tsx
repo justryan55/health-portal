@@ -5,37 +5,29 @@ import { MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
+
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { deleteExercise } from "@/lib/workouts";
 
-const labels = [
-  "feature",
-  "bug",
-  "enhancement",
-  "documentation",
-  "design",
-  "question",
-  "maintenance",
-];
+
+
+interface Exercise {
+  id: string;
+}
+
+interface ComboboxDropdownMenuProps {
+  exercise: Exercise;
+  setIsEditing: React.Dispatch<React.SetStateAction<{ bool: boolean; exercise: Exercise }>>;
+  setIsAddingSet: React.Dispatch<React.SetStateAction<{ bool: boolean; exerciseId: string | null }>>;
+  isAddingSet: { bool: boolean; exerciseId: string | null };
+  onDeleteExercise: (id: string) => void;
+}
 
 export function ComboboxDropdownMenu({
   exercise,
@@ -43,8 +35,7 @@ export function ComboboxDropdownMenu({
   setIsAddingSet,
   isAddingSet,
   onDeleteExercise,
-}) {
-  const [label, setLabel] = React.useState("feature");
+}: ComboboxDropdownMenuProps) {
   const [open, setOpen] = React.useState(false);
 
   const handleDeleteClick = async () => {
@@ -60,7 +51,7 @@ export function ComboboxDropdownMenu({
   };
 
   const handleAddSetClick = () => {
-    setIsAddingSet((prev) => {
+    setIsAddingSet((prev: { bool: boolean; exerciseId: string | null }) => {
       if (prev.bool && prev.exerciseId === exercise.id) {
         return { bool: false, exerciseId: null };
       }

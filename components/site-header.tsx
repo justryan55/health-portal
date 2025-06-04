@@ -1,32 +1,25 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DatePicker } from "./ui/date-picker";
-import { useWorkoutContext } from "@/providers/workout-provider";
-import AddDailyExerciseDialog from "./add-daily-exercise-dialog";
 import { useDate } from "@/providers/date-provider";
 
 export function SiteHeader() {
   const [header, setHeader] = useState("");
-  const { isCreatingWorkout, setIsCreatingWorkout } = useWorkoutContext();
-  // const [date, setDate] = useState<Date | undefined>(new Date());
   const { date, setDate } = useDate();
 
   const pathname = usePathname();
 
-  const handleAddWorkout = () => {
-    setIsCreatingWorkout((prev) => !prev);
-  };
+
 
   useEffect(() => {
     function formatHeader(pathname: string) {
       const string = pathname.substring(1);
 
-      if (!string) return;
+      if (!string) return '';
 
       const formattedString = string[0].toUpperCase() + string.substring(1);
       return formattedString;

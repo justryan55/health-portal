@@ -1,10 +1,15 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
-const DateContext = createContext();
+type DateContextType = {
+  date: Date;
+  setDate: (date: Date) => void;
+};
 
-export function DateProvider({ children }) {
+const DateContext = createContext<DateContextType | undefined>(undefined);
+
+export function DateProvider({ children }: { children: ReactNode }) {
   const [date, setDate] = useState(new Date());
 
   return (

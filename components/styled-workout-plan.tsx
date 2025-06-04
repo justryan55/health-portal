@@ -3,7 +3,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Edit,
-  Dumbbell,
   Plus,
   Save,
   X,
@@ -13,6 +12,35 @@ import { Button } from "./ui/button";
 import { nanoid } from "nanoid";
 import { Input } from "./ui/input";
 import { deleteExerciseFromWorkout, updateWorkoutPlan } from "@/lib/workouts";
+
+
+interface Exercise {
+  keyId: string;
+  isNew?: boolean;
+  exercise_name: string;
+  sets: string;
+  reps: string;
+  weight: string;
+}
+
+interface StyledWorkoutPlanProps {
+  hasStoredWorkout: boolean;
+  workoutName: string;
+  days: string[];
+  currentDayIndex: number;
+  exercisesGroupedByDay: Record<number, Exercise[]>;
+  handlePrevDayClick: () => void;
+  handleNextDayClick: () => void;
+  BuildWorkoutForm: React.ComponentType<any>;
+  onWorkoutSaved: () => void;
+  setHasStoredWorkout: (value: boolean) => void;
+  isLoading: boolean;
+  setIsLoading: (value: boolean) => void;
+  isCreatingWorkout: boolean;
+  setExercisesGroupedByDay: React.Dispatch<React.SetStateAction<Record<number, Exercise[]>>>;
+  workoutId: string;
+}
+
 export default function StyledWorkoutPlan({
   hasStoredWorkout,
   workoutName,
@@ -29,11 +57,11 @@ export default function StyledWorkoutPlan({
   isCreatingWorkout,
   setExercisesGroupedByDay,
   workoutId,
-}) {
+}: StyledWorkoutPlanProps) {
   const [isEditingPlan, setIsEditingPlan] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 760);
 
-  const getExerciseInitials = (name) => {
+  const getExerciseInitials = (name: string) => {
     return name
       .split(" ")
       .map((word) => word[0])
@@ -44,7 +72,7 @@ export default function StyledWorkoutPlan({
 
   const currentExercises = exercisesGroupedByDay[currentDayIndex] || [];
 
-  const addExerciseToPlan = (day) => {
+  const addExerciseToPlan = (day: number) => {
     setExercisesGroupedByDay((prev) => ({
       ...prev,
       [day]: [
@@ -63,7 +91,7 @@ export default function StyledWorkoutPlan({
 
   const uploadExerciseToDB = async (exercise, exerciseIndex) => {
     try {
-      const res = await updateWorkoutPlan(exercise, workoutId, currentDayIndex);
+      await updateWorkoutPlan(exercise, workoutId, currentDayIndex);
 
       setExercisesGroupedByDay((prev) => ({
         ...prev,
@@ -101,7 +129,7 @@ export default function StyledWorkoutPlan({
     setIsEditingPlan(false);
   };
 
-  const updateExercise = (day, index, field, value) => {
+  const updateExercise = (day: number, index: number, field: string, value: string) => {
     setExercisesGroupedByDay((prev) => ({
       ...prev,
       [day]: prev[day].map((exercise, i) =>
@@ -187,7 +215,7 @@ export default function StyledWorkoutPlan({
                 </Button>
                 <Button
                   onClick={saveAllExercises}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                  className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                 >
                   <Save className="w-4 h-4 inline" />
                   {!isMobile && <>Save Changes</>}
