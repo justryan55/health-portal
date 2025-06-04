@@ -33,6 +33,7 @@
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^0.x.x",
     "date-fns": "^2.30.0",
     "lucide-react": "^0.488.0",
     "nanoid": "^5.1.5",
