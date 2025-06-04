@@ -19,8 +19,8 @@ interface WorkoutSet {
   isNew?: boolean;
   setId: string;
   id: string;
-  weight: string;
-  reps: string;
+  weight: number;
+  reps: number;
 }
 
 export default function DailyExerciseCard() {
@@ -38,9 +38,9 @@ export default function DailyExerciseCard() {
     exerciseId: "" as string | null,
   });
   const [tempValues, setTempValues] = useState<{
-    weight: string;
-    reps: string;
-  }>({ weight: "", reps: "" });
+    weight: number;
+    reps: number;
+  }>({ weight: 0, reps: 0 });
 
   const [isCreatingWorkout, setIsCreatingWorkout] = useState(false);
   const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
@@ -64,6 +64,7 @@ export default function DailyExerciseCard() {
       setIsCreatingWorkout(false);
       setExercises(null);
 
+      if (!session) return;
       const data = await fetchDailyWorkout(session, localDateISO);
       console.log("3", data);
 
@@ -89,12 +90,16 @@ export default function DailyExerciseCard() {
     field: "weight" | "reps",
     value: string
   ) => {
-    await updateSet(set, field, value);
+    await updateSet(set, field, Number(value));
 
     // re-render
   };
 
-  const handleAddSet = async (exercise: { id: string }) => {
+  const handleAddSet = async (exercise: {
+    id: string;
+    name: string;
+    sets: WorkoutSet[];
+  }) => {
     const result = await addSet(exercise, tempValues);
     console.log("result", result);
     if (result?.success) {
@@ -109,7 +114,7 @@ export default function DailyExerciseCard() {
         )
       );
 
-      setTempValues({ weight: "", reps: "" });
+      setTempValues({ weight: 0, reps: 0 });
       setIsAddingSet({ bool: false, exerciseId: "" });
     }
   };
@@ -152,6 +157,7 @@ export default function DailyExerciseCard() {
         })
       );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAddingSet]);
 
   useEffect(() => {
@@ -227,7 +233,8 @@ export default function DailyExerciseCard() {
     );
   };
 
-  const uploadExercise = async (exercise: { id: string }) => {
+  const uploadExercise = async (exercise: { id: string; name: string; sets: WorkoutSet[] }) => {
+    if (!session) return;
     const data = await uploadExerciseToDB(session, exercise, localDateISO);
 
     if (data?.success === true) {
@@ -393,7 +400,7 @@ export default function DailyExerciseCard() {
                               isEditing.exercise.id === exercise.id) ? (
                               <div className="flex justify-center">
                                 <Input
-                                  placeholder={set.weight}
+                                  placeholder={String(set.weight)}
                                   className="text-center max-w-30"
                                   onChange={(e) =>
                                     exercise.isNew
@@ -422,7 +429,7 @@ export default function DailyExerciseCard() {
                                   onChange={(e) =>
                                     setTempValues((prev) => ({
                                       ...prev,
-                                      weight: e.target.value,
+                                      weight: Number(e.target.value),
                                     }))
                                   }
                                 />
@@ -442,7 +449,7 @@ export default function DailyExerciseCard() {
                               isEditing.exercise.id === exercise.id) ? (
                               <div className="flex justify-center">
                                 <Input
-                                  placeholder={set.reps}
+                                  placeholder={String(set.reps)}
                                   className="text-center max-w-30"
                                   onChange={(e) =>
                                     exercise.isNew
@@ -462,8 +469,8 @@ export default function DailyExerciseCard() {
                               </div>
                             ) : isAddingSet.bool &&
                               isAddingSet.exerciseId === exercise.id &&
-                              set.weight === "" &&
-                              set.reps === "" ? (
+                              String(set.weight) === "" &&
+                              String(set.reps) === "" ? (
                               <div className="flex justify-center">
                                 <Input
                                   placeholder="Weight"
@@ -472,7 +479,7 @@ export default function DailyExerciseCard() {
                                   onChange={(e) =>
                                     setTempValues((prev) => ({
                                       ...prev,
-                                      reps: e.target.value,
+                                      reps: Number(e.target.value),
                                     }))
                                   }
                                 />

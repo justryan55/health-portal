@@ -140,7 +140,7 @@ export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
         (wd) => wd.day_of_the_week === parseInt(day)
       );
       if (!workout_day) continue;
-      
+
       const entries = exercisesByDay[parseInt(day)].map((ex) => ({
         workout_day_id: workout_day.id,
         exercise_name: ex.exercise,
@@ -236,7 +236,8 @@ export const fetchDailyWorkouts = async (session: Session) => {
           continue;
         }
 
-        workoutPlan.days[day.day_of_the_week] = (exercises as WorkoutDayExercise[]) || [];
+        workoutPlan.days[day.day_of_the_week] =
+          (exercises as WorkoutDayExercise[]) || [];
       }
 
       workoutPlans.push(workoutPlan);
@@ -326,8 +327,11 @@ export const fetchDailyWorkout = async (session: Session, date: string) => {
   }
 };
 
-export const uploadExerciseToDB = async (session: Session, exercise: ExerciseInput, date: string) => {
-  console.log("ex", exercise);
+export const uploadExerciseToDB = async (
+  session: Session,
+  exercise: ExerciseInput,
+  date: string
+) => {
   try {
     if (!session || !session.user) return;
     const userId = session.user.id;
@@ -412,7 +416,7 @@ export const uploadExerciseToDB = async (session: Session, exercise: ExerciseInp
 };
 
 export const deleteExercise = async ({ id }: { id: string }) => {
-  const {  error } = await supabase
+  const { error } = await supabase
     .from("exercises")
     .update({ is_deleted: true })
     .eq("id", id);
@@ -427,7 +431,7 @@ export const deleteExercise = async ({ id }: { id: string }) => {
 };
 
 export const deleteSet = async (id: string) => {
-  const {  error } = await supabase
+  const { error } = await supabase
     .from("sets")
     .update({ is_deleted: true })
     .eq("id", id);
@@ -441,9 +445,13 @@ export const deleteSet = async (id: string) => {
   };
 };
 
-export const updateSet = async (set: ExerciseSet, field: string, value: number) => {
+export const updateSet = async (
+  set: ExerciseSet,
+  field: string,
+  value: number
+) => {
   const id = set.setId;
-
+  console.log("SSSS", set);
   const { data, error } = await supabase
     .from("sets")
     .update({ [field]: value })
@@ -490,7 +498,11 @@ export const addSet = async (exercise: ExerciseWithSets, values: SetInput) => {
   };
 };
 
-export const updateWorkoutPlan = async (exercise: WorkoutPlanExercise, workoutId: string, day: number) => {
+export const updateWorkoutPlan = async (
+  exercise: WorkoutPlanExercise,
+  workoutId: string,
+  day: number
+) => {
   try {
     // eslint-disable-next-line prefer-const
     let { data: workoutDayData, error: workoutDayError } = await supabase
