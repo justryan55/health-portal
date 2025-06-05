@@ -40,7 +40,7 @@ export default function WorkoutPlan({
 }: WorkoutPlanProps) {
   const { setIsCreatingWorkout } = useWorkoutContext();
   const [isBuilding, setIsBuilding] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 760);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   const [exercisesByDay, setExercisesByDay] = useState<ExercisesByDayProps>({
     0: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],

@@ -288,7 +288,11 @@ export default function DailyExerciseCard() {
           </div>
         </div>
       ) : (
-        <div className="flex justify-between items-center p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg ">
+        <div
+          className={`flex ${
+            isMobile ? "flex-col gap-2 text-center" : "flex-row"
+          } justify-between items-center p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg`}
+        >
           <div>
             <h1 className="text-2xl font-bold text-white">
               Today&apos;s Workout
@@ -326,9 +330,13 @@ export default function DailyExerciseCard() {
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                          {getExerciseInitials(exercise.name)}
-                        </div>
+                        {!isMobile ? (
+                          <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                            {getExerciseInitials(exercise.name)}
+                          </div>
+                        ) : (
+                          <span></span>
+                        )}
                         {exercise.isNew ? (
                           <Input
                             type="text"
@@ -358,7 +366,16 @@ export default function DailyExerciseCard() {
                           }}
                         />
                       ) : (
-                        <div className="flex">
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => cancelExercise(exercise)}
+                            size="sm"
+                            variant="outline"
+                            className={`${!isMobile && "ml-2"}`}
+                          >
+                            <X className={`w-4 h-4 ${!isMobile && "mr-2"}`} />
+                            {!isMobile && <span>Cancel</span>}
+                          </Button>{" "}
                           <Button
                             onClick={() => uploadExercise(exercise)}
                             size="sm"
@@ -370,15 +387,6 @@ export default function DailyExerciseCard() {
                             />
                             {!isMobile && <span>Save</span>}
                           </Button>
-                          <Button
-                            onClick={() => cancelExercise(exercise)}
-                            size="sm"
-                            variant="outline"
-                            className={`${!isMobile && "ml-2"}`}
-                          >
-                            <X className={`w-4 h-4 ${!isMobile && "mr-2"}`} />
-                            {!isMobile && <span>Cancel</span>}
-                          </Button>{" "}
                         </div>
                       )}
                     </div>
@@ -389,7 +397,7 @@ export default function DailyExerciseCard() {
                       (set: WorkoutSet, index: number, array: WorkoutSet[]) => (
                         <div
                           key={set.id}
-                          className="grid grid-cols-[60px_1fr_1fr_40px] gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors"
+                          className="grid grid-cols-[60px_1fr_1fr_40px] gap-3 items-center p-3  bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors"
                         >
                           <div className="text-center">
                             <span className="inline-block bg-white text-gray-600 font-semibold text-sm px-3 py-1 rounded-lg">

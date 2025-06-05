@@ -13,13 +13,11 @@ export function SiteHeader() {
 
   const pathname = usePathname();
 
-
-
   useEffect(() => {
     function formatHeader(pathname: string) {
       const string = pathname.substring(1);
 
-      if (!string) return '';
+      if (!string) return "";
 
       const formattedString = string[0].toUpperCase() + string.substring(1);
       return formattedString;
@@ -39,13 +37,8 @@ export function SiteHeader() {
           <h1 className="text-base font-medium">{header}</h1>
         </div>
         {pathname !== "/dashboard" && (
-          // <div className="pl-5">
           <DatePicker date={date} setDate={setDate} />
-          // </div>
         )}
-        {/* <div className="ml-auto flex items-center gap-2">
-          {pathname === "/workouts" && <AddDailyExerciseDialog date={date} />}
-        </div> */}
       </div>
     </header>
   );

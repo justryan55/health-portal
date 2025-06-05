@@ -13,20 +13,43 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export function DatePicker({ date, setDate }: { date: Date | undefined; setDate: (date: Date) => void }) {
-  // const [date, setDate] = React.useState<Date>();
+export function DatePicker({
+  date,
+  setDate,
+}: {
+  date: Date | undefined;
+  setDate: (date: Date) => void;
+}) {
+  const [isMobile, setIsMobile] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 900);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
           className={cn(
-            "w-[240px] justify-start text-left font-normal",
+            "w-max justify-start text-left font-normal",
             !date && "text-muted-foreground"
           )}
         >
           <CalendarIcon />
-          {date ? format(date, "PPP") : <span>Pick a date</span>}
+          {!isMobile && (
+            <>{date ? format(date, "PPP") : <span>Pick a date</span>}</>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">

@@ -13,7 +13,6 @@ import { nanoid } from "nanoid";
 import { Input } from "./ui/input";
 import { deleteExerciseFromWorkout, updateWorkoutPlan } from "@/lib/workouts";
 
-
 interface Exercise {
   id: string;
   keyId: string;
@@ -46,7 +45,9 @@ interface StyledWorkoutPlanProps {
   isLoading: boolean;
   setIsLoading: (value: boolean) => void;
   isCreatingWorkout: boolean;
-  setExercisesGroupedByDay: React.Dispatch<React.SetStateAction<Record<number, Exercise[]>>>;
+  setExercisesGroupedByDay: React.Dispatch<
+    React.SetStateAction<Record<number, Exercise[]>>
+  >;
   workoutId: string;
 }
 
@@ -68,7 +69,7 @@ export default function StyledWorkoutPlan({
   workoutId,
 }: StyledWorkoutPlanProps) {
   const [isEditingPlan, setIsEditingPlan] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 760);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   const getExerciseInitials = (name: string) => {
     return name
@@ -82,24 +83,27 @@ export default function StyledWorkoutPlan({
   const currentExercises = exercisesGroupedByDay[currentDayIndex] || [];
 
   const addExerciseToPlan = (day: number) => {
-      setExercisesGroupedByDay((prev) => ({
-        ...prev,
-        [day]: [
-          ...(prev[day] || []),
-          {
-            id: nanoid(),
-            keyId: nanoid(),
-            isNew: true,
-            exercise_name: "",
-            sets: 0,
-            reps: 0,
-            weight: 0,
-          },
-        ],
-      }));
-    };
+    setExercisesGroupedByDay((prev) => ({
+      ...prev,
+      [day]: [
+        ...(prev[day] || []),
+        {
+          id: nanoid(),
+          keyId: nanoid(),
+          isNew: true,
+          exercise_name: "",
+          sets: 0,
+          reps: 0,
+          weight: 0,
+        },
+      ],
+    }));
+  };
 
-  const uploadExerciseToDB = async (exercise: Exercise, exerciseIndex: number) => {
+  const uploadExerciseToDB = async (
+    exercise: Exercise,
+    exerciseIndex: number
+  ) => {
     try {
       await updateWorkoutPlan(exercise, workoutId, currentDayIndex);
 
@@ -139,7 +143,12 @@ export default function StyledWorkoutPlan({
     setIsEditingPlan(false);
   };
 
-  const updateExercise = (day: number, index: number, field: string, value: string | number) => {
+  const updateExercise = (
+    day: number,
+    index: number,
+    field: string,
+    value: string | number
+  ) => {
     setExercisesGroupedByDay((prev) => ({
       ...prev,
       [day]: prev[day].map((exercise, i) =>
@@ -147,8 +156,6 @@ export default function StyledWorkoutPlan({
       ),
     }));
   };
-
-  console.log("!!!!!", currentExercises);
 
   useEffect(() => {
     const handleResize = () => {
@@ -166,7 +173,6 @@ export default function StyledWorkoutPlan({
 
   const handleDeleteClick = async (exercise: Exercise, index: number) => {
     const data = await deleteExerciseFromWorkout(exercise);
-    console.log(data);
 
     if (data.success) {
       setExercisesGroupedByDay((prev) => ({
@@ -174,6 +180,13 @@ export default function StyledWorkoutPlan({
         [currentDayIndex]: prev[currentDayIndex].filter((_, i) => i !== index),
       }));
     }
+  };
+
+  const handleCancel = (index) => {
+    setExercisesGroupedByDay((prev) => ({
+      ...prev,
+      [currentDayIndex]: prev[currentDayIndex].filter((_, i) => i !== index),
+    }));
   };
 
   return (
@@ -188,12 +201,15 @@ export default function StyledWorkoutPlan({
 
       {!isCreatingWorkout && hasStoredWorkout && (
         <>
-          <div className="flex justify-between items-center p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg ">
+          <div
+            className={`flex ${
+              isMobile ? "flex-col gap-2 text-center" : "flex-row"
+            } justify-between items-center p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg`}
+          >
             <div>
               <h1 className="text-2xl font-bold text-white">{workoutName}</h1>
-              {!isMobile && (
-                <p className="text-gray-300 font-medium">Weekly Workout Plan</p>
-              )}
+
+              <p className="text-gray-300 font-medium">Weekly Workout Plan</p>
             </div>
             {!isEditingPlan ? (
               <div className="flex gap-2 ">
@@ -204,15 +220,15 @@ export default function StyledWorkoutPlan({
                   <Plus className="w-4 h-4 inline" />
                   {!isMobile && <>Add Exercise</>}
                 </Button> */}
-                {currentExercises.length > 0 && (
-                  <Button
-                    onClick={() => setIsEditingPlan(true)}
-                    className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-                  >
-                    <Edit className="w-4 h-4 inline" />
-                    {!isMobile && <>Edit Plan</>}
-                  </Button>
-                )}
+                {/* {currentExercises.length > 0 && ( */}
+                <Button
+                  onClick={() => setIsEditingPlan(true)}
+                  className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                >
+                  <Edit className="w-4 h-4 inline" />
+                  {!isMobile && <>Edit Plan</>}
+                </Button>
+                {/* )} */}
               </div>
             ) : (
               <div className="flex gap-2 ">
@@ -280,17 +296,22 @@ export default function StyledWorkoutPlan({
                     <div className="p-6 pb-4">
                       <div className="flex justify-between items-center">
                         <div className="flex flex-row items-center gap-3 justify-between">
-                          <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                            {exercise.exercise_name &&
-                            exercise.exercise_name.trim() !== ""
-                              ? getExerciseInitials(exercise.exercise_name)
-                              : "EX"}
-                          </div>
+                          {!isMobile ? (
+                            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                              {exercise.exercise_name &&
+                              exercise.exercise_name.trim() !== ""
+                                ? getExerciseInitials(exercise.exercise_name)
+                                : "EX"}
+                            </div>
+                          ) : (
+                            <span></span>
+                          )}
 
                           {isEditingThisExercise ? (
                             <Input
                               placeholder="Exercise name"
                               value={exercise.exercise_name || ""}
+                              className={`${isMobile && "mr-2"}`}
                               onChange={(e) =>
                                 updateExercise(
                                   currentDayIndex,
@@ -306,31 +327,50 @@ export default function StyledWorkoutPlan({
                             </h3>
                           )}
                         </div>
-                        {isEditingPlan && (
-                          <Button
-                            onClick={() => handleDeleteClick(exercise, index)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg p-2"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-
-                        {isEditingThisExercise &&
-                          exercise.isNew &&
-                          exercise.exercise_name &&
-                          exercise.exercise_name.trim() !== "" && (
+                        <div className="flex items-center gap-2">
+                          {isEditingPlan && !exercise.isNew && (
                             <Button
-                              onClick={() =>
-                                uploadExerciseToDB(exercise, index)
-                              }
+                              onClick={() => handleDeleteClick(exercise, index)}
+                              variant="outline"
                               size="sm"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg p-2"
                             >
-                              <Save className="w-4 h-4 mr-2" />
-                              Save
+                              <Trash2
+                                className={`w-4 h-4 ${!isMobile && "mr-2"}`}
+                              />
+                              {!isMobile && <span>Delete</span>}
                             </Button>
                           )}
+
+                          {exercise.isNew && (
+                            <Button
+                              onClick={() => handleCancel(index)}
+                              variant="outline"
+                              size="sm"
+                            >
+                              <X className={`w-4 h-4 ${!isMobile && "mr-2"}`} />
+                              {!isMobile && <span>Cancel</span>}
+                            </Button>
+                          )}
+
+                          {isEditingThisExercise &&
+                            exercise.isNew &&
+                            exercise.exercise_name &&
+                            exercise.exercise_name.trim() !== "" && (
+                              <Button
+                                onClick={() =>
+                                  uploadExerciseToDB(exercise, index)
+                                }
+                                variant="outline"
+                                size="sm"
+                              >
+                                <Save
+                                  className={`w-4 h-4 ${!isMobile && "mr-2"}`}
+                                />
+                                {!isMobile && <span>Save</span>}
+                              </Button>
+                            )}
+                        </div>
                       </div>
                     </div>
 
@@ -349,11 +389,11 @@ export default function StyledWorkoutPlan({
                                 value={exercise.sets || ""}
                                 onChange={(e) =>
                                   updateExercise(
-                                      currentDayIndex,
-                                      index,
-                                      "sets",
-                                      Number(e.target.value)
-                                    )
+                                    currentDayIndex,
+                                    index,
+                                    "sets",
+                                    Number(e.target.value)
+                                  )
                                 }
                               />
                             ) : (
@@ -375,11 +415,11 @@ export default function StyledWorkoutPlan({
                                 value={exercise.reps || ""}
                                 onChange={(e) =>
                                   updateExercise(
-                                      currentDayIndex,
-                                      index,
-                                      "reps",
-                                      Number(e.target.value)
-                                    )
+                                    currentDayIndex,
+                                    index,
+                                    "reps",
+                                    Number(e.target.value)
+                                  )
                                 }
                               />
                             ) : (
@@ -401,11 +441,11 @@ export default function StyledWorkoutPlan({
                                 value={exercise.weight || ""}
                                 onChange={(e) =>
                                   updateExercise(
-                                      currentDayIndex,
-                                      index,
-                                      "weight",
-                                      Number(e.target.value)
-                                    )
+                                    currentDayIndex,
+                                    index,
+                                    "weight",
+                                    Number(e.target.value)
+                                  )
                                 }
                               />
                             ) : (
