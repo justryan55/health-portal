@@ -18,7 +18,7 @@ import {
   updateWorkoutPlan,
 } from "@/lib/workouts";
 import { useSupabaseSession } from "@/providers/supabase-provider";
-
+import { v4 as uuidv4 } from "uuid";
 interface Exercise {
   id: string;
   keyId: string;
@@ -95,7 +95,7 @@ export default function StyledWorkoutPlan({
       [day]: [
         ...(prev[day] || []),
         {
-          id: nanoid(),
+          id: uuidv4(),
           keyId: nanoid(),
           isNew: true,
           exercise_name: "",
@@ -208,7 +208,7 @@ export default function StyledWorkoutPlan({
   const handleDeletePlanClick = async () => {
     try {
       if (!session) return;
-      const plan = await fetchWeeklyPlan(session) || [];
+      const plan = (await fetchWeeklyPlan(session)) || [];
       const [planToBeDeleted] = plan;
 
       if (!planToBeDeleted) return;
