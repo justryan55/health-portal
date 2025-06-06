@@ -266,7 +266,6 @@ export const fetchDailyWorkout = async (session: Session, date: string) => {
       .limit(1)
       .maybeSingle();
 
-    console.log("1", dailyWorkout);
     if (dailyWorkoutError) {
       console.log("dailyWorkoutError", dailyWorkoutError);
       return null;

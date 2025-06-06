@@ -70,7 +70,6 @@ export default function DailyExerciseCard() {
 
       if (!session) return;
       const data = await fetchDailyWorkout(session, localDateISO);
-      console.log("3", data);
 
       if (!data || data.length === 0) {
         return setHasStoredWorkout(false);
@@ -116,7 +115,7 @@ export default function DailyExerciseCard() {
     sets: WorkoutSet[];
   }) => {
     const result = await addSet(exercise, tempValues);
-    console.log("result", result);
+
     if (result?.success) {
       setExercises((prev) =>
         (prev ?? []).map((ex) =>
@@ -135,8 +134,6 @@ export default function DailyExerciseCard() {
   };
 
   useEffect(() => {
-    console.log(isAddingSet);
-    console.log(exercises);
     if (!exercises) return;
 
     if (isAddingSet) {
