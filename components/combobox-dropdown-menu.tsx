@@ -10,12 +10,9 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { deleteExercise } from "@/lib/workouts";
-
-
 
 interface Exercise {
   id: string;
@@ -23,8 +20,12 @@ interface Exercise {
 
 interface ComboboxDropdownMenuProps {
   exercise: Exercise;
-  setIsEditing: React.Dispatch<React.SetStateAction<{ bool: boolean; exercise: Exercise }>>;
-  setIsAddingSet: React.Dispatch<React.SetStateAction<{ bool: boolean; exerciseId: string | null }>>;
+  setIsEditing: React.Dispatch<
+    React.SetStateAction<{ bool: boolean; exercise: Exercise }>
+  >;
+  setIsAddingSet: React.Dispatch<
+    React.SetStateAction<{ bool: boolean; exerciseId: string | null }>
+  >;
   isAddingSet: { bool: boolean; exerciseId: string | null };
   onDeleteExercise: (id: string) => void;
 }
@@ -74,13 +75,13 @@ export function ComboboxDropdownMenu({
         <DropdownMenuContent align="end" className="w-[200px]">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuGroup>
-            {!isAddingSet.bool ? (
+            {isAddingSet.bool && isAddingSet.exerciseId === exercise.id ? (
               <DropdownMenuItem onClick={handleAddSetClick}>
-                Add Set
+                Cancel Set
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem onClick={handleAddSetClick}>
-                Cancel Set
+                Add Set
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={handleEditClick}>Edit</DropdownMenuItem>

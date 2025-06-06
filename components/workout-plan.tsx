@@ -270,7 +270,7 @@ export default function WorkoutPlan({
                   {(exercisesByDay[day] || []).map((row, index) => (
                     <Card
                       key={row.id}
-                      className="border border-gray-100 bg-white shadow-none "
+                      className="border border-gray-100 bg-white shadow-none relative"
                     >
                       <CardContent>
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
@@ -363,7 +363,9 @@ export default function WorkoutPlan({
                                 onClick={() => handleDeleteClick(index)}
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl w-10 h-10 p-0"
+                                className={`text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl w-10 h-10 p-0 ${
+                                  isMobile && "absolute top-0 right-0"
+                                }`}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>

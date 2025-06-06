@@ -14,6 +14,7 @@ import { Plus, Save, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { ComboboxDropdownMenu } from "./combobox-dropdown-menu";
 import { Input } from "./ui/input";
+import { Separator } from "./ui/separator";
 
 interface WorkoutSet {
   isNew?: boolean;
@@ -38,9 +39,12 @@ export default function DailyExerciseCard() {
     exerciseId: "" as string | null,
   });
   const [tempValues, setTempValues] = useState<{
-    weight: number;
-    reps: number;
-  }>({ weight: 0, reps: 0 });
+    weight: number | undefined;
+    reps: number | undefined;
+  }>({
+    weight: undefined,
+    reps: undefined,
+  });
 
   const [isCreatingWorkout, setIsCreatingWorkout] = useState(false);
   const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
@@ -90,9 +94,20 @@ export default function DailyExerciseCard() {
     field: "weight" | "reps",
     value: string
   ) => {
-    await updateSet(set, field, Number(value));
+    const result = await updateSet(set, field, Number(value));
 
-    // re-render
+    if (result) {
+      setExercises((prev) =>
+        (prev ?? []).map((exercise) => ({
+          ...exercise,
+          sets: exercise.sets.map((exerciseSet: WorkoutSet) =>
+            exerciseSet.setId === set.setId
+              ? { ...exerciseSet, [field]: Number(value) }
+              : exerciseSet
+          ),
+        }))
+      );
+    }
   };
 
   const handleAddSet = async (exercise: {
@@ -180,7 +195,7 @@ export default function DailyExerciseCard() {
       {
         id: nanoid(),
         isNew: true,
-        name: "E X",
+        name: "Exercise",
         sets: [{ weight: "", reps: "" }],
       },
     ]);
@@ -262,6 +277,21 @@ export default function DailyExerciseCard() {
     setExercises((prev) =>
       (prev ?? []).filter((ex) => ex.id !== exerciseToCancel.id)
     );
+  };
+
+  const cancelNewSet = (exercise: { id: string }) => {
+    setTempValues(() => ({ weight: undefined, reps: undefined }));
+    setIsAddingSet((prev: { bool: boolean; exerciseId: string | null }) => {
+      if (prev.bool && prev.exerciseId === exercise.id) {
+        return { bool: false, exerciseId: null };
+      }
+
+      return { bool: true, exerciseId: exercise.id };
+    });
+  };
+
+  const handleSaveEdit = () => {
+    setIsEditing({ bool: false, exercise: {} });
   };
 
   return (
@@ -353,7 +383,11 @@ export default function DailyExerciseCard() {
                         )}
                       </div>
 
-                      {!exercise.isNew ? (
+                      {!exercise.isNew &&
+                      (!isAddingSet.bool ||
+                        isAddingSet.exerciseId !== exercise.id) &&
+                      (!isEditing.bool ||
+                        isEditing.exercise.id !== exercise.id) ? (
                         <ComboboxDropdownMenu
                           exercise={exercise}
                           setIsEditing={setIsEditing}
@@ -365,6 +399,56 @@ export default function DailyExerciseCard() {
                             );
                           }}
                         />
+                      ) : (isAddingSet.bool &&
+                          isAddingSet.exerciseId === exercise.id) ||
+                        (isEditing.bool &&
+                          isEditing.exercise.id === exercise.id) ? (
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => {
+                              if (
+                                isAddingSet.bool &&
+                                isAddingSet.exerciseId === exercise.id
+                              ) {
+                                cancelNewSet(exercise);
+                              } else if (
+                                isEditing.bool &&
+                                isEditing.exercise.id === exercise.id
+                              ) {
+                                setIsEditing({ bool: false, exercise: {} });
+                              }
+                            }}
+                            size="sm"
+                            variant="outline"
+                            className={`${!isMobile && "ml-2"}`}
+                          >
+                            <X className={`w-4 h-4 ${!isMobile && "mr-2"}`} />
+                            {!isMobile && <span>Cancel</span>}
+                          </Button>{" "}
+                          <Button
+                            onClick={() => {
+                              if (
+                                isAddingSet.bool &&
+                                isAddingSet.exerciseId === exercise.id
+                              ) {
+                                handleAddSet(exercise);
+                              } else if (
+                                isEditing.bool &&
+                                isEditing.exercise.id === exercise.id
+                              ) {
+                                handleSaveEdit();
+                              }
+                            }}
+                            size="sm"
+                            variant="outline"
+                            className={`${isMobile && "mr-2"}`}
+                          >
+                            <Save
+                              className={`w-4 h-4 ${!isMobile && "mr-2"}`}
+                            />
+                            {!isMobile && <span>Save</span>}
+                          </Button>
+                        </div>
                       ) : (
                         <div className="flex gap-2">
                           <Button
@@ -393,122 +477,139 @@ export default function DailyExerciseCard() {
                   </CardHeader>
 
                   <CardContent className="space-y-3 pt-0">
+                    <div className="grid grid-cols-[0.5fr_1fr_1fr] gap-3 text-center items-center p-3  bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors">
+                      <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        Set
+                      </div>
+                      <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        Weight
+                      </div>
+                      <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        Reps
+                      </div>
+                    </div>
                     {exercise.sets.map(
                       (set: WorkoutSet, index: number, array: WorkoutSet[]) => (
-                        <div
-                          key={set.id}
-                          className="grid grid-cols-[60px_1fr_1fr_40px] gap-3 items-center p-3  bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors"
-                        >
-                          <div className="text-center">
-                            <span className="inline-block bg-white text-gray-600 font-semibold text-sm px-3 py-1 rounded-lg">
-                              {`${isMobile ? "S" : "Set "}`}
-                              {index + 1}
-                            </span>
-                          </div>
-                          <div className="text-center">
-                            {/* {!isMobile && (
+                        <>
+                          <div
+                            key={set.id}
+                            className="grid grid-cols-[0.5fr_1fr_1fr] gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors mb-0"
+                          >
+                            <div className="text-center">
+                              {/* {!isMobile && (
+                              <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
+                                Set
+                              </div>
+                            )} */}
+                              <div className="text-md font-bold text-gray-800">
+                                {/* {`${isMobile ? "S" : ""}`} */}
+                                {index + 1}
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              {/* {!isMobile && (
                               <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
                                 Weight
                               </div>
                             )} */}
-                            {exercise.isNew ||
-                            (isEditing.bool &&
-                              isEditing.exercise.id === exercise.id) ? (
-                              <div className="flex justify-center">
-                                <Input
-                                  placeholder={String(set.weight) || "Weight"}
-                                  className="text-center max-w-30 "
-                                  onChange={(e) =>
-                                    exercise.isNew
-                                      ? handleNewExerciseSetChange(
-                                          exercise.id,
-                                          index,
-                                          "weight",
-                                          e.target.value
-                                        )
-                                      : handleEditInput(
-                                          set,
-                                          "weight",
-                                          e.target.value
-                                        )
-                                  }
-                                />
-                              </div>
-                            ) : isAddingSet.bool &&
-                              isAddingSet.exerciseId === exercise.id &&
-                              set.isNew ? (
-                              <div className="flex justify-center">
-                                <Input
-                                  placeholder="Weight"
-                                  className="text-center max-w-30"
-                                  value={tempValues.weight}
-                                  onChange={(e) =>
-                                    setTempValues((prev) => ({
-                                      ...prev,
-                                      weight: Number(e.target.value),
-                                    }))
-                                  }
-                                />
-                              </div>
-                            ) : (
-                              <div className="text-md font-bold text-gray-800">
-                                {set.weight}
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-center">
-                            {/* {!isMobile && (
+                              {exercise.isNew ||
+                              (isEditing.bool &&
+                                isEditing.exercise.id === exercise.id) ? (
+                                <div className="flex justify-center">
+                                  <Input
+                                    placeholder={String(set.weight) || "Weight"}
+                                    className="text-center max-w-30 "
+                                    onChange={(e) =>
+                                      exercise.isNew
+                                        ? handleNewExerciseSetChange(
+                                            exercise.id,
+                                            index,
+                                            "weight",
+                                            e.target.value
+                                          )
+                                        : handleEditInput(
+                                            set,
+                                            "weight",
+                                            e.target.value
+                                          )
+                                    }
+                                  />
+                                </div>
+                              ) : isAddingSet.bool &&
+                                isAddingSet.exerciseId === exercise.id &&
+                                set.isNew ? (
+                                <div className="flex justify-center">
+                                  <Input
+                                    placeholder="Weight"
+                                    className="text-center max-w-30"
+                                    value={tempValues.weight}
+                                    onChange={(e) =>
+                                      setTempValues((prev) => ({
+                                        ...prev,
+                                        weight: Number(e.target.value),
+                                      }))
+                                    }
+                                  />
+                                </div>
+                              ) : (
+                                <div className="text-md font-bold text-gray-800">
+                                  {set.weight}
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-center">
+                              {/* {!isMobile && (
                               <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
                                 Reps
                               </div>
                             )} */}
-                            {exercise.isNew ||
-                            (isEditing.bool &&
-                              isEditing.exercise.id === exercise.id) ? (
-                              <div className="flex justify-center">
-                                <Input
-                                  placeholder={String(set.reps) || "Reps"}
-                                  className="text-center max-w-30"
-                                  onChange={(e) =>
-                                    exercise.isNew
-                                      ? handleNewExerciseSetChange(
-                                          exercise.id,
-                                          index,
-                                          "reps",
-                                          e.target.value
-                                        )
-                                      : handleEditInput(
-                                          set,
-                                          "reps",
-                                          e.target.value
-                                        )
-                                  }
-                                />
-                              </div>
-                            ) : isAddingSet.bool &&
-                              isAddingSet.exerciseId === exercise.id &&
-                              String(set.weight) === "" &&
-                              String(set.reps) === "" ? (
-                              <div className="flex justify-center">
-                                <Input
-                                  placeholder="Weight"
-                                  className="text-center max-w-30"
-                                  value={tempValues.reps}
-                                  onChange={(e) =>
-                                    setTempValues((prev) => ({
-                                      ...prev,
-                                      reps: Number(e.target.value),
-                                    }))
-                                  }
-                                />
-                              </div>
-                            ) : (
-                              <div className="text-md font-bold text-gray-800">
-                                {set.reps}
-                              </div>
-                            )}
-                          </div>
-                          {isAddingSet.bool &&
+                              {exercise.isNew ||
+                              (isEditing.bool &&
+                                isEditing.exercise.id === exercise.id) ? (
+                                <div className="flex justify-center">
+                                  <Input
+                                    placeholder={String(set.reps) || "Reps"}
+                                    className="text-center max-w-30"
+                                    onChange={(e) =>
+                                      exercise.isNew
+                                        ? handleNewExerciseSetChange(
+                                            exercise.id,
+                                            index,
+                                            "reps",
+                                            e.target.value
+                                          )
+                                        : handleEditInput(
+                                            set,
+                                            "reps",
+                                            e.target.value
+                                          )
+                                    }
+                                  />
+                                </div>
+                              ) : isAddingSet.bool &&
+                                isAddingSet.exerciseId === exercise.id &&
+                                String(set.weight) === "" &&
+                                String(set.reps) === "" ? (
+                                <div className="flex justify-center">
+                                  <Input
+                                    placeholder="Reps"
+                                    className="text-center max-w-30"
+                                    value={tempValues.reps}
+                                    onChange={(e) =>
+                                      setTempValues((prev) => ({
+                                        ...prev,
+                                        reps: Number(e.target.value),
+                                      }))
+                                    }
+                                  />
+                                </div>
+                              ) : (
+                                <div className="text-md font-bold text-gray-800">
+                                  {set.reps}
+                                </div>
+                              )}
+                            </div>
+                            {/* {isAddingSet.bool &&
                             index + 1 === array.length &&
                             isAddingSet.exerciseId === exercise.id && (
                               <Button
@@ -520,20 +621,49 @@ export default function DailyExerciseCard() {
                                 <span className="sr-only">Add Set</span>
                                 <Save />
                               </Button>
+                            )} */}
+                            {/* <div className="col-span-3 flex items-center justify-center w-full">
+                            {exercise.isNew && index + 1 === array.length && (
+                              <div className="flex flex-col w-full">
+                                <Separator className="w-full mb-2" />
+                                <div className="flex justify-center items-center w-full pb-3">
+                                  <Button
+                                    onClick={() =>
+                                      addSetToNewExercise(exercise.id)
+                                    }
+                                    size="sm"
+                                    className="px-3 max-w-max"
+                                    variant="outline"
+                                  >
+                                    <span className="sr-only">Add Set</span>
+                                    <Plus />
+                                  </Button>
+                                </div>
+                              </div>
                             )}
-
-                          {exercise.isNew && index + 1 === array.length && (
-                            <Button
-                              onClick={() => addSetToNewExercise(exercise.id)}
-                              size="sm"
-                              className="px-3 max-w-max"
-                              variant="outline"
-                            >
-                              <span className="sr-only">Add Set</span>
-                              <Plus />
-                            </Button>
-                          )}
-                        </div>
+                          </div> */}
+                          </div>
+                          <div className="col-span-3 flex items-center justify-center w-full">
+                            {exercise.isNew && index + 1 === array.length && (
+                              <div className="flex flex-col w-full mt-2">
+                                <Separator className="w-full mb-2" />
+                                <div className="flex justify-center items-center w-full pb-3">
+                                  <Button
+                                    onClick={() =>
+                                      addSetToNewExercise(exercise.id)
+                                    }
+                                    size="sm"
+                                    className="px-3 max-w-max"
+                                    variant="outline"
+                                  >
+                                    <span className="sr-only">Add Set</span>
+                                    <Plus />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </>
                       )
                     )}
                   </CardContent>

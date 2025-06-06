@@ -2,7 +2,7 @@
 
 import WorkoutPlan from "@/components/workout-plan";
 import { useCallback, useEffect, useState } from "react";
-import { fetchDailyWorkouts } from "@/lib/workouts";
+import { fetchWeeklyPlan } from "@/lib/workouts";
 import { useSupabaseSession } from "@/providers/supabase-provider";
 import { useWorkoutContext } from "@/providers/workout-provider";
 
@@ -53,7 +53,7 @@ export default function Page() {
   const returnDailyWorkouts = useCallback(async () => {
     if (!session || !session.user) return;
 
-    const data = await fetchDailyWorkouts(session);
+    const data = await fetchWeeklyPlan(session);
 
     if (!data || data.length === 0) {
       setIsLoading(false);
