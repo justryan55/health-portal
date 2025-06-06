@@ -208,20 +208,30 @@ export default function WorkoutPlan({
   if (isBuilding) {
     return (
       <div>
-        <div className="flex flex-col justify-between items-start p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg  ">
-          <h1 className="text-2xl font-bold text-white">Workout Plan Name</h1>
+        <div className="flex flex-col justify-between items-start p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg">
+          <h1
+            className={`text-2xl w-full font-bold text-white ${
+              isMobile ? "text-center" : ""
+            }`}
+          >
+            Workout Plan Name
+          </h1>
           <Input
             type="text"
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="e.g., PPL Split..."
             value={workoutPlan.workoutName}
-            className="mt-2 max-w-md"
+            className={`mt-2 max-w-md ${isMobile ? "text-center" : ""}`}
           />
         </div>
         <Card className=" mt-5">
           <CardContent className="p-6">
-            <div className="space-y-6">
-              <Card className="border border-gray-100 bg-gray-50/50 shadow-none">
+            <div className="space-y-6 relative">
+              <Card
+                className={`border border-gray-100 bg-gray-50/50 shadow-none ${
+                  isMobile ? "mb-0" : ""
+                }`}
+              >
                 <CardContent>
                   <div className="flex justify-between items-center">
                     <Button onClick={prevDay} variant="ghost" size="sm">
@@ -253,13 +263,18 @@ export default function WorkoutPlan({
                     isMobile && "flex-col"
                   } items-center justify-between`}
                 >
-                  <h4 className="text-xl pl-1 font-bold text-gray-900">
-                    Exercises for {days[day]}
-                  </h4>
+                  {!isMobile && (
+                    <h4 className="text-xl pl-1 font-bold text-gray-900">
+                      Exercises for {days[day]}
+                    </h4>
+                  )}
+
                   <Button
                     onClick={addRow}
                     variant="outline"
-                    className={`${isMobile && "mt-2"}`}
+                    className={`${
+                      isMobile && "mt-2 absolute bottom-0 bottom-[75px]"
+                    }`}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Exercise
@@ -270,7 +285,9 @@ export default function WorkoutPlan({
                   {(exercisesByDay[day] || []).map((row, index) => (
                     <Card
                       key={row.id}
-                      className="border border-gray-100 bg-white shadow-none relative"
+                      className={`border border-gray-100 bg-white shadow-none relative ${
+                        isMobile ? "pb-1" : ""
+                      }`}
                     >
                       <CardContent>
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
@@ -378,7 +395,11 @@ export default function WorkoutPlan({
                 </div>
               </div>
 
-              <div className="border-t border-gray-100 pt-6 mt-8">
+              <div
+                className={`border-t border-gray-100 pt-6 ${
+                  isMobile ? "mt-16" : "mt-8"
+                }`}
+              >
                 <div
                   className={`flex ${
                     !isMobile ? "justify-between" : "justify-center"
