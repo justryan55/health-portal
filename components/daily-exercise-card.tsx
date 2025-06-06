@@ -15,6 +15,8 @@ import { Button } from "./ui/button";
 import { ComboboxDropdownMenu } from "./combobox-dropdown-menu";
 import { Input } from "./ui/input";
 import { Separator } from "./ui/separator";
+import spinnerBlack from "@/public/spinner-black.svg";
+import Image from "next/image";
 
 interface WorkoutSet {
   isNew?: boolean;
@@ -52,6 +54,7 @@ export default function DailyExerciseCard() {
   const { date } = useDate();
   const localTimeMs = date.getTime() - date.getTimezoneOffset() * 60 * 1000;
   const localDateISO = new Date(localTimeMs).toISOString();
+  const [isLoading, setIsLoading] = useState(false);
 
   const getExerciseInitials = (name: string) => {
     return name
@@ -63,6 +66,7 @@ export default function DailyExerciseCard() {
   };
 
   useEffect(() => {
+    setIsLoading(true);
     const checkIfWorkoutForDate = async () => {
       setHasStoredWorkout(false);
       setIsCreatingWorkout(false);
@@ -72,9 +76,10 @@ export default function DailyExerciseCard() {
       const data = await fetchDailyWorkout(session, localDateISO);
 
       if (!data || data.length === 0) {
+        setIsLoading(false);
         return setHasStoredWorkout(false);
       }
-
+      setIsLoading(false);
       setHasStoredWorkout(true);
       setExercises(data);
     };
@@ -290,6 +295,14 @@ export default function DailyExerciseCard() {
   const handleSaveEdit = () => {
     setIsEditing({ bool: false, exercise: {} });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[320px] bg-white rounded-2xl border border-gray-100">
+        <Image src={spinnerBlack} alt="loading-spinner" className="" priority />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full ">
