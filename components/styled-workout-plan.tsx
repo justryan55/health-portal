@@ -11,7 +11,13 @@ import {
 import { Button } from "./ui/button";
 import { nanoid } from "nanoid";
 import { Input } from "./ui/input";
-import { deleteExerciseFromWorkout, updateWorkoutPlan } from "@/lib/workouts";
+import {
+  deleteExerciseFromWorkout,
+  deletePlan,
+  fetchWeeklyPlan,
+  updateWorkoutPlan,
+} from "@/lib/workouts";
+import { useSupabaseSession } from "@/providers/supabase-provider";
 
 interface Exercise {
   id: string;
@@ -81,6 +87,7 @@ export default function StyledWorkoutPlan({
   };
 
   const currentExercises = exercisesGroupedByDay[currentDayIndex] || [];
+  const session = useSupabaseSession();
 
   const addExerciseToPlan = (day: number) => {
     setExercisesGroupedByDay((prev) => ({
@@ -133,12 +140,21 @@ export default function StyledWorkoutPlan({
   };
 
   const cancelEditing = () => {
-    setExercisesGroupedByDay((prev) => ({
-      ...prev,
-      [currentDayIndex]: prev[currentDayIndex].filter(
-        (exercise) => !exercise.isNew
-      ),
-    }));
+    setExercisesGroupedByDay((prev) => {
+      const dayExercises = prev[currentDayIndex];
+
+      if (!dayExercises) {
+        console.log(
+          "No exercises found for current day index:",
+          currentDayIndex
+        );
+        return prev;
+      }
+      return {
+        ...prev,
+        [currentDayIndex]: dayExercises.filter((exercise) => !exercise.isNew),
+      };
+    });
 
     setIsEditingPlan(false);
   };
@@ -182,11 +198,29 @@ export default function StyledWorkoutPlan({
     }
   };
 
-  const handleCancel = (index) => {
+  const handleCancel = (index: number) => {
     setExercisesGroupedByDay((prev) => ({
       ...prev,
       [currentDayIndex]: prev[currentDayIndex].filter((_, i) => i !== index),
     }));
+  };
+
+  const handleDeletePlanClick = async () => {
+    try {
+      if (!session) return;
+      const plan = await fetchWeeklyPlan(session) || [];
+      const [planToBeDeleted] = plan;
+
+      if (!planToBeDeleted) return;
+
+      const data = await deletePlan(planToBeDeleted.id);
+
+      if (data?.success) {
+        setHasStoredWorkout(false);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -232,6 +266,14 @@ export default function StyledWorkoutPlan({
               </div>
             ) : (
               <div className="flex gap-2 ">
+                <Button
+                  onClick={() => handleDeletePlanClick()}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4 inline" />
+                  {!isMobile && <>Delete Plan</>}
+                </Button>
+
                 <Button
                   onClick={() => addExerciseToPlan(currentDayIndex)}
                   className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
@@ -309,7 +351,7 @@ export default function StyledWorkoutPlan({
 
                           {isEditingThisExercise ? (
                             <Input
-                              placeholder="Exercise name"
+                              placeholder="Exercise"
                               value={exercise.exercise_name || ""}
                               className={`${isMobile && "mr-2"}`}
                               onChange={(e) =>

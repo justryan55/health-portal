@@ -166,7 +166,7 @@ export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
   }
 };
 
-export const fetchDailyWorkouts = async (session: Session) => {
+export const fetchWeeklyPlan = async (session: Session) => {
   try {
     if (!session || !session.user) return;
 
@@ -176,6 +176,7 @@ export const fetchDailyWorkouts = async (session: Session) => {
       .from("workouts")
       .select("id, name, created_at")
       .eq("user_id", userId)
+      .eq("is_deleted", false)
       .order("created_at", { ascending: false });
 
     if (workoutsError) {
@@ -243,7 +244,6 @@ export const fetchDailyWorkouts = async (session: Session) => {
       workoutPlans.push(workoutPlan);
     }
 
-    console.log("Fetched workout plans:", workoutPlans);
     return workoutPlans;
   } catch (err) {
     console.error("Error fetching daily workouts:", err);
@@ -595,4 +595,26 @@ export const deleteExerciseFromWorkout = async (exercise: { id: string }) => {
   return {
     success: true,
   };
+};
+
+export const deletePlan = async (planToBeDeleted: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("workouts")
+      .update({ is_deleted: true })
+      .eq("id", planToBeDeleted);
+
+    if (error) {
+      return {
+        success: false,
+      };
+    }
+
+    return {
+      success: true,
+      message: data,
+    };
+  } catch (err) {
+    console.log(err);
+  }
 };
