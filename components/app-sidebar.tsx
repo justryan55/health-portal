@@ -2,23 +2,23 @@
 
 import * as React from "react";
 import {
-  IconChartBar,
+  // IconChartBar,
   IconDashboard,
   IconDatabase,
   IconFileWord,
-  IconFolder,
+  // IconFolder,
   IconHelp,
   IconInnerShadowTop,
   IconListDetails,
   IconReport,
   IconSearch,
   IconSettings,
-  IconUsers,
+  // IconUsers,
 } from "@tabler/icons-react";
 
-import { NavDocuments } from "@/components/nav-documents";
+// import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
-import { NavSecondary } from "@/components/nav-secondary";
+// import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
