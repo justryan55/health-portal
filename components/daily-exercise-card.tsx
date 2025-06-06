@@ -487,28 +487,14 @@ export default function DailyExerciseCard() {
                     </div>
                     {exercise.sets.map(
                       (set: WorkoutSet, index: number, array: WorkoutSet[]) => (
-                        <>
-                          <div
-                            key={set.id}
-                            className="grid grid-cols-[0.5fr_1fr_1fr] gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors mb-0"
-                          >
+                        <div key={set.id}>
+                          <div className="grid grid-cols-[0.5fr_1fr_1fr] gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors mb-0">
                             <div className="text-center">
-                              {/* {!isMobile && (
-                              <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
-                                Set
-                              </div>
-                            )} */}
                               <div className="text-md font-bold text-gray-800">
-                                {/* {`${isMobile ? "S" : ""}`} */}
                                 {index + 1}
                               </div>
                             </div>
                             <div className="text-center">
-                              {/* {!isMobile && (
-                              <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
-                                Weight
-                              </div>
-                            )} */}
                               {exercise.isNew ||
                               (isEditing.bool &&
                                 isEditing.exercise.id === exercise.id) ? (
@@ -660,7 +646,7 @@ export default function DailyExerciseCard() {
                               </div>
                             )}
                           </div>
-                        </>
+                        </div>
                       )
                     )}
                   </CardContent>
