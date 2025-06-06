@@ -43,21 +43,21 @@ const data = {
       url: "/workouts",
       icon: IconListDetails,
     },
-    {
-      title: "Nutrition",
-      url: "/nutrition",
-      icon: IconChartBar,
-    },
-    {
-      title: "Habits",
-      url: "/habits",
-      icon: IconFolder,
-    },
-    {
-      title: "Journal",
-      url: "/journal",
-      icon: IconUsers,
-    },
+    // {
+    //   title: "Nutrition",
+    //   url: "/nutrition",
+    //   icon: IconChartBar,
+    // },
+    // {
+    //   title: "Habits",
+    //   url: "/habits",
+    //   icon: IconFolder,
+    // },
+    // {
+    //   title: "Journal",
+    //   url: "/journal",
+    //   icon: IconUsers,
+    // },
     {
       title: "Coach (AI Assistant)",
       url: "/coach",
@@ -122,8 +122,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        {/* <NavDocuments items={data.documents} /> */}
+        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
