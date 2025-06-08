@@ -72,6 +72,7 @@ interface ExerciseWithSets {
 
 interface ExerciseInput {
   name: string;
+  libraryId: string;
   sets: Array<{
     weight: number;
     reps: number;
@@ -337,7 +338,7 @@ export const uploadExerciseToDB = async (
   date: string
 ) => {
   try {
-    console.log("DDDD", exercise);
+    console.log(exercise);
     if (!session || !session.user) return;
     const userId = session.user.id;
 
@@ -369,12 +370,20 @@ export const uploadExerciseToDB = async (
 
       dailyWorkout = newWorkout as DailyWorkout;
     }
+
     const { data: exerciseData, error: exerciseError } = await supabase
       .from("exercises")
-      .insert([{ daily_workout_id: dailyWorkout.id, name: exercise.name }])
+      .insert([
+        {
+          daily_workout_id: dailyWorkout.id,
+          name: exercise.name,
+          exercise_library_id: exercise.libraryId || null,
+        },
+      ])
       .select()
       .single();
 
+    console.log("DDDDD", exerciseData);
     if (exerciseError) {
       console.log(exerciseError);
       return;
@@ -638,7 +647,7 @@ export const exerciseSuggestions = async (query: string) => {
 
     const { data, error } = await supabase
       .from("exercise_library")
-      .select("name")
+      .select("name, id")
       .ilike("name", `%${query}%`)
       .limit(10);
 
@@ -646,9 +655,8 @@ export const exerciseSuggestions = async (query: string) => {
       console.error("Autocomplete fetch error:", error);
       return { success: false, message: error };
     }
-
-    const names = data.map((item) => item.name);
-    return { success: true, data: names };
+    const results = data.map(({ id, name }) => ({ id, name }));
+    return { success: true, data: results };
   } catch (err) {
     console.log(err);
   }

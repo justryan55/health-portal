@@ -62,6 +62,7 @@ export default function DailyExerciseCard() {
   // const [progress, setProgress] = useState([5]);
 
   const getExerciseInitials = (name: string) => {
+    if (!name) return;
     return name
       .split(" ")
       .map((word) => word[0])
@@ -235,9 +236,11 @@ export default function DailyExerciseCard() {
     );
   };
 
-  const handleChange = (id: string, value: string) => {
+  const handleChange = (id: string, value: { name: string; id: string }) => {
     setExercises((prev) =>
-      (prev ?? []).map((ex) => (ex.id === id ? { ...ex, name: value } : ex))
+      (prev ?? []).map((ex) =>
+        ex.id === id ? { ...ex, name: value.name, libraryId: value.id } : ex
+      )
     );
   };
 
@@ -270,18 +273,23 @@ export default function DailyExerciseCard() {
     isNew: boolean;
     name: string;
     sets: WorkoutSet[];
+    libraryId?: string;
   }) => {
     if (!session) return;
 
     const exerciseToUpload = exercise.isNew
       ? {
           ...exercise,
+          libraryId: exercise.libraryId ?? "",
           sets: exercise.sets.map((set) => ({
             ...set,
             rpe: Number(set.rpe ?? 5),
           })),
         }
-      : exercise;
+      : {
+          ...exercise,
+          libraryId: exercise.libraryId ?? "",
+        };
 
     const data = await uploadExerciseToDB(
       session,
