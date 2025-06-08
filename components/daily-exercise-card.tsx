@@ -590,7 +590,7 @@ export default function DailyExerciseCard() {
                                 <div className="flex justify-center">
                                   <Input
                                     placeholder={String(set.weight) || "Weight"}
-                                    className="text-center max-w-30 "
+                                    className="text-center max-w-30 bg-white"
                                     onChange={(e) =>
                                       exercise.isNew
                                         ? handleNewExerciseSetChange(
@@ -613,7 +613,7 @@ export default function DailyExerciseCard() {
                                 <div className="flex justify-center">
                                   <Input
                                     placeholder="Weight"
-                                    className="text-center max-w-30"
+                                    className="text-center max-w-30 bg-white"
                                     value={tempValues.weight}
                                     onChange={(e) =>
                                       setTempValues((prev) => ({
@@ -642,7 +642,7 @@ export default function DailyExerciseCard() {
                                 <div className="flex justify-center">
                                   <Input
                                     placeholder={String(set.reps) || "Reps"}
-                                    className="text-center max-w-30"
+                                    className="text-center max-w-30 bg-white"
                                     onChange={(e) =>
                                       exercise.isNew
                                         ? handleNewExerciseSetChange(
@@ -666,7 +666,7 @@ export default function DailyExerciseCard() {
                                 <div className="flex justify-center">
                                   <Input
                                     placeholder="Reps"
-                                    className="text-center max-w-30"
+                                    className="text-center max-w-30 bg-white"
                                     value={tempValues.reps}
                                     onChange={(e) =>
                                       setTempValues((prev) => ({
@@ -682,8 +682,8 @@ export default function DailyExerciseCard() {
                                 </div>
                               )}
                             </div>
-                            <div className="text-md text-center font-bold text-gray-800">
-                              {set.rpe}
+                            <div className="text-md text-center font-bold text-gray-800 ">
+                              {set.rpe ?? 5}
                             </div>
                             {/* {isAddingSet.bool &&
                             index + 1 === array.length &&
