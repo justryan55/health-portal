@@ -14,9 +14,10 @@ import { Plus, Save, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { ComboboxDropdownMenu } from "./combobox-dropdown-menu";
 import { Input } from "./ui/input";
-import { Separator } from "./ui/separator";
 import spinnerBlack from "@/public/spinner-black.svg";
 import Image from "next/image";
+import { ExerciseAutocompleteInput } from "./exercise-autocomplete-input";
+import NumberSlider from "./number-slider";
 
 interface WorkoutSet {
   isNew?: boolean;
@@ -24,6 +25,7 @@ interface WorkoutSet {
   id: string;
   weight: number;
   reps: number;
+  rpe: number;
 }
 
 export default function DailyExerciseCard() {
@@ -43,9 +45,11 @@ export default function DailyExerciseCard() {
   const [tempValues, setTempValues] = useState<{
     weight: number | undefined;
     reps: number | undefined;
+    rpe: number | undefined;
   }>({
     weight: undefined,
     reps: undefined,
+    rpe: 5,
   });
 
   const [isCreatingWorkout, setIsCreatingWorkout] = useState(false);
@@ -55,6 +59,7 @@ export default function DailyExerciseCard() {
   const localTimeMs = date.getTime() - date.getTimezoneOffset() * 60 * 1000;
   const localDateISO = new Date(localTimeMs).toISOString();
   const [isLoading, setIsLoading] = useState(false);
+  // const [progress, setProgress] = useState([5]);
 
   const getExerciseInitials = (name: string) => {
     return name
@@ -74,6 +79,7 @@ export default function DailyExerciseCard() {
 
       if (!session) return;
       const data = await fetchDailyWorkout(session, localDateISO);
+      console.log(data);
 
       if (!data || data.length === 0) {
         setIsLoading(false);
@@ -133,7 +139,7 @@ export default function DailyExerciseCard() {
         )
       );
 
-      setTempValues({ weight: 0, reps: 0 });
+      setTempValues({ weight: undefined, reps: undefined, rpe: 5 });
       setIsAddingSet({ bool: false, exerciseId: "" });
     }
   };
@@ -212,7 +218,16 @@ export default function DailyExerciseCard() {
         if (exercise.id === exerciseId) {
           return {
             ...exercise,
-            sets: [...exercise.sets, { id: nanoid(), weight: "", reps: "" }],
+            sets: [
+              ...exercise.sets,
+              {
+                id: nanoid(),
+                weight: tempValues.weight ?? "",
+                reps: tempValues.reps ?? "",
+                rpe: tempValues.rpe ?? 5,
+                isNew: true,
+              },
+            ],
           };
         }
         return exercise;
@@ -252,11 +267,27 @@ export default function DailyExerciseCard() {
 
   const uploadExercise = async (exercise: {
     id: string;
+    isNew: boolean;
     name: string;
     sets: WorkoutSet[];
   }) => {
     if (!session) return;
-    const data = await uploadExerciseToDB(session, exercise, localDateISO);
+
+    const exerciseToUpload = exercise.isNew
+      ? {
+          ...exercise,
+          sets: exercise.sets.map((set) => ({
+            ...set,
+            rpe: Number(set.rpe ?? 5),
+          })),
+        }
+      : exercise;
+
+    const data = await uploadExerciseToDB(
+      session,
+      exerciseToUpload,
+      localDateISO
+    );
 
     if (data?.success === true) {
       setExercises((prev) =>
@@ -281,8 +312,33 @@ export default function DailyExerciseCard() {
     );
   };
 
+  const cancelLastSet = (exercise: { id: string; sets: WorkoutSet[] }) => {
+    setExercises((prev) =>
+      (prev ?? [])
+        .filter((ex) => {
+          if (ex.id === exercise.id) {
+            return ex.sets.length > 1;
+          }
+          return true;
+        })
+        .map((ex) => {
+          if (ex.id === exercise.id) {
+            return {
+              ...ex,
+              sets: ex.sets.slice(0, -1),
+            };
+          }
+          return ex;
+        })
+    );
+  };
+
   const cancelNewSet = (exercise: { id: string }) => {
-    setTempValues(() => ({ weight: undefined, reps: undefined }));
+    setTempValues(() => ({
+      weight: undefined,
+      reps: undefined,
+      rpe: 5,
+    }));
     setIsAddingSet((prev: { bool: boolean; exerciseId: string | null }) => {
       if (prev.bool && prev.exerciseId === exercise.id) {
         return { bool: false, exerciseId: null };
@@ -296,9 +352,25 @@ export default function DailyExerciseCard() {
     setIsEditing({ bool: false, exercise: {} });
   };
 
+  const handleRpeChange = (newRpe: number, exercise: { id: string }, index: number) => {
+    setExercises((prev) =>
+      (prev ?? []).map((ex) => {
+        if (ex.id === exercise.id) {
+          return {
+            ...ex,
+            sets: ex.sets.map((s: WorkoutSet, i: number) =>
+              i === index ? { ...s, rpe: newRpe } : s
+            ),
+          };
+        }
+        return ex;
+      })
+    );
+  };
+
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[320px] bg-white rounded-2xl border border-gray-100">
+      <div className="flex w-full justify-center items-center min-h-[320px] bg-white rounded-2xl border border-gray-100">
         <Image src={spinnerBlack} alt="loading-spinner" className="" priority />
       </div>
     );
@@ -378,13 +450,16 @@ export default function DailyExerciseCard() {
                           <span></span>
                         )}
                         {exercise.isNew ? (
-                          <Input
-                            type="text"
-                            placeholder="Exercise"
-                            onChange={(e) =>
-                              handleChange(exercise.id, e.target.value)
-                            }
-                            className={`${isMobile && "mr-2"}`}
+                          <ExerciseAutocompleteInput
+                            // type="text"
+                            exercise={exercise}
+                            // placeholder="Exercise"
+                            // onChange={(e) =>
+                            //   handleChange(exercise.id, e.target.value)
+                            // }
+                            handleChange={handleChange}
+                            isMobile={isMobile ?? false}
+                            // className={`${isMobile && "mr-2"}`}
                           />
                         ) : (
                           <h3 className="text-l font-bold text-gray-800">
@@ -553,6 +628,7 @@ export default function DailyExerciseCard() {
                                 </div>
                               )}
                             </div>
+
                             <div className="text-center">
                               {/* {!isMobile && (
                               <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
@@ -639,11 +715,39 @@ export default function DailyExerciseCard() {
                             )}
                           </div> */}
                           </div>
+                          {isAddingSet.bool &&
+                            isAddingSet.exerciseId === exercise.id &&
+                            set.isNew && (
+                              <div className="mt-3">
+                                <NumberSlider
+                                  rpe={set.rpe}
+                                  onRpeChange={(newRpe) =>
+                                    handleRpeChange(newRpe, exercise, index)
+                                  }
+                                />
+                              </div>
+                            )}
+
                           <div className="col-span-3 flex items-center justify-center w-full">
                             {exercise.isNew && index + 1 === array.length && (
-                              <div className="flex flex-col w-full mt-2">
-                                <Separator className="w-full mb-2" />
-                                <div className="flex justify-center items-center w-full pb-3">
+                              <div className="flex flex-col justify-center items-center w-full mt-2">
+                                <NumberSlider
+                                  rpe={set.rpe}
+                                  onRpeChange={(newRpe) =>
+                                    handleRpeChange(newRpe, exercise, index)
+                                  }
+                                />
+                                {/* <Separator className="w-full mb-2" /> */}
+                                <div className="flex justify-center items-center w-full gap-3 pb-3">
+                                  <Button
+                                    onClick={() => cancelLastSet(exercise)}
+                                    size="sm"
+                                    className="px-3 max-w-max"
+                                    variant="outline"
+                                  >
+                                    <span className="sr-only">Cancel Set</span>
+                                    <X />
+                                  </Button>
                                   <Button
                                     onClick={() =>
                                       addSetToNewExercise(exercise.id)
