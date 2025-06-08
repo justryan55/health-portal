@@ -320,6 +320,7 @@ export const fetchDailyWorkout = async (session: Session, date: string) => {
             setId: set.id,
             weight: set.weight,
             reps: set.reps,
+            rpe: set.rpe,
           })),
         };
       })

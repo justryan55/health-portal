@@ -352,7 +352,11 @@ export default function DailyExerciseCard() {
     setIsEditing({ bool: false, exercise: {} });
   };
 
-  const handleRpeChange = (newRpe: number, exercise: { id: string }, index: number) => {
+  const handleRpeChange = (
+    newRpe: number,
+    exercise: { id: string },
+    index: number
+  ) => {
     setExercises((prev) =>
       (prev ?? []).map((ex) => {
         if (ex.id === exercise.id) {
@@ -681,6 +685,7 @@ export default function DailyExerciseCard() {
                                 </div>
                               )}
                             </div>
+
                             {/* {isAddingSet.bool &&
                             index + 1 === array.length &&
                             isAddingSet.exerciseId === exercise.id && (
