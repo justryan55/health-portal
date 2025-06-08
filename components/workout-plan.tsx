@@ -389,7 +389,8 @@ export default function WorkoutPlan({
                                 {isMobile ? (
                                   <X className="w-4 h-4" />
                                 ) : (
-                                  <Trash2 className="w-4 h-4" />
+                                  // <Trash2 className="w-4 h-4" />
+                                  <X className="w-4 h-4" />
                                 )}
                               </Button>
                             )}
