@@ -566,7 +566,7 @@ export default function DailyExerciseCard() {
                   </CardHeader>
 
                   <CardContent className="space-y-3 pt-0">
-                    <div className="grid grid-cols-[0.5fr_1fr_1fr] gap-3 text-center items-center p-3  bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors">
+                    <div className="grid grid-cols-[0.25fr_1fr_1fr_1fr]  gap-3 text-center items-center p-3  bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors">
                       <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">
                         Set
                       </div>
@@ -576,11 +576,14 @@ export default function DailyExerciseCard() {
                       <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">
                         Reps
                       </div>
+                      <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        Rpe
+                      </div>
                     </div>
                     {exercise.sets.map(
                       (set: WorkoutSet, index: number, array: WorkoutSet[]) => (
                         <div key={set.id}>
-                          <div className="grid grid-cols-[0.5fr_1fr_1fr] gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors mb-0">
+                          <div className="grid grid-cols-[0.25fr_1fr_1fr_1fr] gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors mb-0">
                             <div className="text-center">
                               <div className="text-md font-bold text-gray-800">
                                 {index + 1}
@@ -685,7 +688,9 @@ export default function DailyExerciseCard() {
                                 </div>
                               )}
                             </div>
-
+                            <div className="text-md text-center font-bold text-gray-800">
+                              {set.rpe}
+                            </div>
                             {/* {isAddingSet.bool &&
                             index + 1 === array.length &&
                             isAddingSet.exerciseId === exercise.id && (
