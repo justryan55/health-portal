@@ -52,6 +52,7 @@ interface SetData {
   id: string;
   weight: number;
   reps: number;
+  rpe: number;
   order: number;
   exercise_id: string;
 }
@@ -60,6 +61,7 @@ interface ExerciseSet {
   setId: string;
   weight: number;
   reps: number;
+  rpe: number;
 }
 
 interface ExerciseWithSets {
@@ -73,12 +75,14 @@ interface ExerciseInput {
   sets: Array<{
     weight: number;
     reps: number;
+    rpe: number;
   }>;
 }
 
 interface SetInput {
   weight?: number;
   reps?: number;
+  rpe?: number;
 }
 
 interface WorkoutPlanExercise {
@@ -332,6 +336,7 @@ export const uploadExerciseToDB = async (
   date: string
 ) => {
   try {
+    console.log("DDDD", exercise);
     if (!session || !session.user) return;
     const userId = session.user.id;
 
@@ -349,7 +354,6 @@ export const uploadExerciseToDB = async (
 
     let dailyWorkout = existingWorkout as DailyWorkout | null;
 
-    // Insert if not found
     if (!dailyWorkout) {
       const { data: newWorkout, error: insertError } = await supabase
         .from("daily_workouts")
@@ -381,6 +385,7 @@ export const uploadExerciseToDB = async (
       exercise_id: exerciseId,
       weight: set.weight,
       reps: set.reps,
+      rpe: set.rpe,
       order: index,
     }));
 
@@ -400,7 +405,9 @@ export const uploadExerciseToDB = async (
       setId: set.id,
       weight: set.weight,
       reps: set.reps,
+      rpe: set.rpe,
     }));
+
     return {
       success: true,
       exercise: {
@@ -475,6 +482,7 @@ export const addSet = async (exercise: ExerciseWithSets, values: SetInput) => {
         exercise_id: exercise.id,
         weight: values.weight || 0,
         reps: values.reps || 0,
+        rpe: values.rpe || 0,
         order: exercise.sets.length,
       },
     ])
@@ -493,6 +501,7 @@ export const addSet = async (exercise: ExerciseWithSets, values: SetInput) => {
       setId: setData.id,
       weight: setData.weight,
       reps: setData.reps,
+      rpe: setData.rpe,
     },
   };
 };
@@ -538,11 +547,13 @@ export const updateWorkoutPlan = async (
       sets: number;
       reps: number;
       weight: number;
+      rpe: number;
       exercise_name: string;
       workout_day_id: string;
     } = {
       sets: exercise.sets,
       reps: exercise.reps,
+      rpe: exercise.reps,
       weight: exercise.weight,
       exercise_name: exercise.exercise_name,
       workout_day_id: typedWorkoutDay.id,
@@ -613,6 +624,30 @@ export const deletePlan = async (planToBeDeleted: string) => {
       success: true,
       message: data,
     };
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const exerciseSuggestions = async (query: string) => {
+  try {
+    // if (!query || typeof query !== "string") {
+    //   return res.status(400).json([]);
+    // }
+
+    const { data, error } = await supabase
+      .from("exercise_library")
+      .select("name")
+      .ilike("name", `%${query}%`)
+      .limit(10);
+
+    if (error) {
+      console.error("Autocomplete fetch error:", error);
+      return { success: false, message: error };
+    }
+
+    const names = data.map((item) => item.name);
+    return { success: true, data: names };
   } catch (err) {
     console.log(err);
   }
