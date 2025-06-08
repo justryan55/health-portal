@@ -293,8 +293,6 @@ export const fetchDailyWorkout = async (session: Session, date: string) => {
       return null;
     }
 
-    console.log("Data", exerciseData);
-
     if (!exerciseData || exerciseData.length <= 0) {
       return null;
     }
@@ -308,7 +306,6 @@ export const fetchDailyWorkout = async (session: Session, date: string) => {
           .eq("is_deleted", false)
           .order("order", { ascending: true });
 
-        console.log("setData", sets);
         if (setsError) {
           console.log("setsError", setsError);
           return { id: exercise.id, name: exercise.name, sets: [] };
@@ -399,8 +396,6 @@ export const uploadExerciseToDB = async (
       order: index,
     }));
 
-    console.log("Payload", setsPayload);
-
     const { data: insertedSets, error: setError } = await supabase
       .from("sets")
       .insert(setsPayload)
@@ -467,14 +462,13 @@ export const updateSet = async (
   value: number
 ) => {
   const id = set.setId;
-  console.log("SSSS", set);
+
   const { data, error } = await supabase
     .from("sets")
     .update({ [field]: value })
     .eq("id", id)
     .select();
 
-  console.log(data);
   if (error) {
     return error;
   }

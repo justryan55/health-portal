@@ -80,7 +80,6 @@ export default function DailyExerciseCard() {
 
       if (!session) return;
       const data = await fetchDailyWorkout(session, localDateISO);
-      console.log(data);
 
       if (!data || data.length === 0) {
         setIsLoading(false);
@@ -93,12 +92,6 @@ export default function DailyExerciseCard() {
 
     checkIfWorkoutForDate();
   }, [session, localDateISO]);
-
-  // const handleDeleteClick = async (set) => {
-  //   const data = await deleteSet(set.setId);
-  //   console.log(data);
-  //   // re-render
-  // };
 
   const handleEditInput = async (
     set: WorkoutSet,
@@ -450,7 +443,6 @@ export default function DailyExerciseCard() {
                   className="group relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white rounded-2xl"
                 >
                   <div className="absolute top-0 left-0 right-0 h-1 bg-black" />
-
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
@@ -463,15 +455,9 @@ export default function DailyExerciseCard() {
                         )}
                         {exercise.isNew ? (
                           <ExerciseAutocompleteInput
-                            // type="text"
                             exercise={exercise}
-                            // placeholder="Exercise"
-                            // onChange={(e) =>
-                            //   handleChange(exercise.id, e.target.value)
-                            // }
                             handleChange={handleChange}
                             isMobile={isMobile ?? false}
-                            // className={`${isMobile && "mr-2"}`}
                           />
                         ) : (
                           <h3 className="text-l font-bold text-gray-800">
@@ -590,7 +576,7 @@ export default function DailyExerciseCard() {
                     </div>
                     {exercise.sets.map(
                       (set: WorkoutSet, index: number, array: WorkoutSet[]) => (
-                        <div key={set.id}>
+                        <div key={set.setId}>
                           <div className="grid grid-cols-[0.25fr_1fr_1fr_1fr] gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors mb-0">
                             <div className="text-center">
                               <div className="text-md font-bold text-gray-800">
