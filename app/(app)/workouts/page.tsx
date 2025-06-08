@@ -81,7 +81,7 @@ export default function Page() {
 
   useEffect(() => {
     const today = new Date().getDay();
-    setCurrentDayIndex(today - 1);
+    setCurrentDayIndex((today + 6) % 7);
   }, []);
 
   useEffect(() => {
