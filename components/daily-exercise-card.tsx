@@ -127,11 +127,13 @@ export default function DailyExerciseCard() {
           ex.id === exercise.id
             ? {
                 ...ex,
-                sets: [...ex.sets, result.set],
+                sets: [...ex.sets, { ...result.set, rpe: tempValues.rpe ?? 5 }],
               }
             : ex
         )
       );
+
+      console.log(exercises);
 
       setTempValues({ weight: undefined, reps: undefined, rpe: 5 });
       setIsAddingSet({ bool: false, exerciseId: "" });
@@ -165,6 +167,7 @@ export default function DailyExerciseCard() {
                   setId: nanoid(),
                   weight: "",
                   reps: "",
+                  rpe: tempValues.rpe ?? 5,
                   isNew: true,
                 },
               ],
@@ -175,7 +178,7 @@ export default function DailyExerciseCard() {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAddingSet]);
+  }, [isAddingSet, tempValues.rpe]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -724,10 +727,29 @@ export default function DailyExerciseCard() {
                             set.isNew && (
                               <div className="mt-3">
                                 <NumberSlider
-                                  rpe={set.rpe}
-                                  onRpeChange={(newRpe) =>
-                                    handleRpeChange(newRpe, exercise, index)
-                                  }
+                                  rpe={set.rpe ?? 5}
+                                  onRpeChange={(newRpe) => {
+                                    setTempValues((prev) => ({
+                                      ...prev,
+                                      rpe: newRpe,
+                                    }));
+                                    setExercises((prev) =>
+                                      (prev ?? []).map((ex) => {
+                                        if (ex.id === exercise.id) {
+                                          return {
+                                            ...ex,
+                                            sets: ex.sets.map(
+                                              (s: WorkoutSet, i: number) =>
+                                                i === index
+                                                  ? { ...s, rpe: newRpe }
+                                                  : s
+                                            ),
+                                          };
+                                        }
+                                        return ex;
+                                      })
+                                    );
+                                  }}
                                 />
                               </div>
                             )}
