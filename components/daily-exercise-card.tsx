@@ -446,13 +446,13 @@ export default function DailyExerciseCard() {
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        {!isMobile ? (
-                          <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                            {getExerciseInitials(exercise.name)}
-                          </div>
-                        ) : (
+                        {/* {!isMobile ? ( */}
+                        <div className="min-w-[10px] h-10 bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                          {getExerciseInitials(exercise.name)}
+                        </div>
+                        {/* ) : (
                           <span></span>
-                        )}
+                        )} */}
                         {exercise.isNew ? (
                           <ExerciseAutocompleteInput
                             exercise={exercise}
