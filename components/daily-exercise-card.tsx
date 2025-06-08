@@ -431,7 +431,8 @@ export default function DailyExerciseCard() {
             className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
           >
             <Plus className="w-4 h-4 inline" />
-            {!isMobile && <>Add Exercise</>}
+            {/* {!isMobile && <>Add Exercise</>} */}
+            Add Exercise
           </Button>
         </div>
       )}
@@ -450,7 +451,7 @@ export default function DailyExerciseCard() {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         {/* {!isMobile ? ( */}
-                        <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                        <div className="w-10 h-10 min-w-[40px] bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">
                           {getExerciseInitials(exercise.name)}
                         </div>
                         {/* ) : (
@@ -771,8 +772,8 @@ export default function DailyExerciseCard() {
                                     className="px-3 max-w-max"
                                     variant="outline"
                                   >
-                                    <span className="sr-only">Cancel Set</span>
                                     <X />
+                                    <span>Cancel Set</span>
                                   </Button>
                                   <Button
                                     onClick={() =>
@@ -782,8 +783,8 @@ export default function DailyExerciseCard() {
                                     className="px-3 max-w-max"
                                     variant="outline"
                                   >
-                                    <span className="sr-only">Add Set</span>
                                     <Plus />
+                                    <span>Add Set</span>
                                   </Button>
                                 </div>
                               </div>

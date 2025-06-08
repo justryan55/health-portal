@@ -221,20 +221,22 @@ export default function WorkoutPlan({
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="e.g., PPL Split..."
             value={workoutPlan.workoutName}
-            className={`mt-2 max-w-md ${isMobile ? "text-center" : ""}`}
+            className={`mt-2 max-w-md bg-white text-black ${
+              isMobile ? "text-center" : ""
+            }`}
           />
         </div>
         <Card className=" mt-5">
           <CardContent className="p-6">
             <div className="space-y-6 relative">
               <Card
-                className={`border border-gray-100 bg-gray-50/50 shadow-none ${
+                className={`border border-gray-50 bg-gray-50 shadow-none ${
                   isMobile ? "mb-0" : ""
                 }`}
               >
                 <CardContent>
                   <div className="flex justify-between items-center">
-                    <Button onClick={prevDay} variant="ghost" size="sm">
+                    <Button onClick={prevDay} variant="outline" size="sm">
                       <ChevronLeft className="w-4 h-4 mr-1" />
                       {!isMobile && <span>Previous</span>}
                     </Button>
@@ -248,7 +250,7 @@ export default function WorkoutPlan({
                       </p> */}
                     </div>
 
-                    <Button onClick={nextDay} variant="ghost" size="sm">
+                    <Button onClick={nextDay} variant="outline" size="sm">
                       {!isMobile && <span>Next</span>}
 
                       <ChevronRight className="w-4 h-4 ml-1" />
@@ -285,12 +287,12 @@ export default function WorkoutPlan({
                   {(exercisesByDay[day] || []).map((row, index) => (
                     <Card
                       key={row.id}
-                      className={`border border-gray-100 bg-white shadow-none relative ${
+                      className={`border border-gray-100 bg-gray-50 shadow-none relative ${
                         isMobile ? "pb-1" : ""
                       }`}
                     >
                       <CardContent>
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end ">
                           <div className="lg:col-span-5">
                             <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
                               Exercise
@@ -306,7 +308,7 @@ export default function WorkoutPlan({
                                   e.target.value
                                 )
                               }
-                              className="border-gray-200 "
+                              className="border-gray-200 bg-white"
                             />
                           </div>
 
@@ -328,7 +330,7 @@ export default function WorkoutPlan({
                                     e.target.value
                                   )
                                 }
-                                className="border-gray-200 "
+                                className="border-gray-200 bg-white"
                               />
                             </div>
                             <div>
@@ -348,7 +350,7 @@ export default function WorkoutPlan({
                                     e.target.value
                                   )
                                 }
-                                className="border-gray-200 "
+                                className="border-gray-200 bg-white"
                               />
                             </div>
                             <div>
@@ -369,7 +371,7 @@ export default function WorkoutPlan({
                                     e.target.value
                                   )
                                 }
-                                className="border-gray-200 "
+                                className="border-gray-200 bg-white"
                               />
                             </div>{" "}
                           </div>
@@ -380,11 +382,15 @@ export default function WorkoutPlan({
                                 onClick={() => handleDeleteClick(index)}
                                 variant="ghost"
                                 size="sm"
-                                className={`text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl w-10 h-10 p-0 ${
+                                className={`text-black-500 hover:text-red-700 hover:bg-red-50 rounded-xl w-10 h-10 p-0 ${
                                   isMobile && "absolute top-0 right-0"
                                 }`}
                               >
-                                <Trash2 className="w-4 h-4" />
+                                {isMobile ? (
+                                  <X className="w-4 h-4" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
                               </Button>
                             )}
                           </div>

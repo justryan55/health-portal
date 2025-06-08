@@ -303,6 +303,7 @@ export default function StyledWorkoutPlan({
             <Button
               onClick={handlePrevDayClick}
               className="p-3 rounded-lg transition-colors border border-gray-200"
+              variant="outline"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
@@ -319,6 +320,7 @@ export default function StyledWorkoutPlan({
             <Button
               onClick={handleNextDayClick}
               className="p-3 rounded-lg transition-colors border border-gray-200"
+              variant="outline"
             >
               <ChevronRight className="w-5 h-5" />
             </Button>
@@ -338,16 +340,16 @@ export default function StyledWorkoutPlan({
                     <div className="p-6 pb-4">
                       <div className="flex justify-between items-center">
                         <div className="flex flex-row items-center gap-3 justify-between">
-                          {!isMobile ? (
-                            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                              {exercise.exercise_name &&
-                              exercise.exercise_name.trim() !== ""
-                                ? getExerciseInitials(exercise.exercise_name)
-                                : "EX"}
-                            </div>
-                          ) : (
+                          {/* {!isMobile ? ( */}
+                          <div className="w-10 h-10 min-w-[40px] bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                            {exercise.exercise_name &&
+                            exercise.exercise_name.trim() !== ""
+                              ? getExerciseInitials(exercise.exercise_name)
+                              : "EX"}
+                          </div>
+                          {/* ) : (
                             <span></span>
-                          )}
+                          )} */}
 
                           {isEditingThisExercise ? (
                             <Input
@@ -395,23 +397,22 @@ export default function StyledWorkoutPlan({
                             </Button>
                           )}
 
-                          {isEditingThisExercise &&
-                            exercise.isNew &&
-                            exercise.exercise_name &&
-                            exercise.exercise_name.trim() !== "" && (
-                              <Button
-                                onClick={() =>
-                                  uploadExerciseToDB(exercise, index)
-                                }
-                                variant="outline"
-                                size="sm"
-                              >
-                                <Save
-                                  className={`w-4 h-4 ${!isMobile && "mr-2"}`}
-                                />
-                                {!isMobile && <span>Save</span>}
-                              </Button>
-                            )}
+                          {isEditingThisExercise && exercise.isNew && (
+                            // exercise.exercise_name &&
+                            // exercise.exercise_name.trim() !== "" &&
+                            <Button
+                              onClick={() =>
+                                uploadExerciseToDB(exercise, index)
+                              }
+                              variant="outline"
+                              size="sm"
+                            >
+                              <Save
+                                className={`w-4 h-4 ${!isMobile && "mr-2"}`}
+                              />
+                              {!isMobile && <span>Save</span>}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -427,7 +428,7 @@ export default function StyledWorkoutPlan({
                             {isEditingThisExercise ? (
                               <Input
                                 placeholder="0"
-                                className="text-center"
+                                className="text-center bg-white"
                                 value={exercise.sets || ""}
                                 onChange={(e) =>
                                   updateExercise(
@@ -453,7 +454,7 @@ export default function StyledWorkoutPlan({
                             {isEditingThisExercise ? (
                               <Input
                                 placeholder="0"
-                                className="text-center"
+                                className="text-center bg-white"
                                 value={exercise.reps || ""}
                                 onChange={(e) =>
                                   updateExercise(
@@ -479,7 +480,7 @@ export default function StyledWorkoutPlan({
                             {isEditingThisExercise ? (
                               <Input
                                 placeholder="0"
-                                className="text-center"
+                                className="text-center bg-white"
                                 value={exercise.weight || ""}
                                 onChange={(e) =>
                                   updateExercise(
