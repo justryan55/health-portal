@@ -463,7 +463,7 @@ export const updateSet = async (
 ) => {
   const id = set.setId;
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("sets")
     .update({ [field]: value })
     .eq("id", id)
