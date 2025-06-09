@@ -5,11 +5,12 @@ import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { uploadWorkoutPlanToDB } from "@/lib/workouts";
 import { useWorkoutContext } from "@/providers/workout-provider";
-import { Plus, ChevronRight, ChevronLeft, Trash2, Save, X } from "lucide-react";
+import { Plus, ChevronRight, ChevronLeft, Save, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { nanoid } from "nanoid";
 import Image from "next/image";
 import spinnerBlack from "@/public/spinner-black.svg";
+import { getEmptyWorkoutPlan } from "./get-empty-workout-plan";
 
 interface Exercise {
   id: string;
@@ -29,6 +30,16 @@ interface WorkoutPlanProps {
   setHasStoredWorkout: (value: boolean) => void;
   isLoading: boolean;
   setIsLoading: (value: boolean) => void;
+  setIsEditingPlan: (value: boolean) => void;
+  exercisesByDay: ExercisesByDayProps;
+  setExercisesByDay: (value: ExercisesByDayProps) => void;
+  workoutPlan: { workoutName: string; exercises: ExercisesByDayProps };
+  setWorkoutPlan: (value: {
+    workoutName: string;
+    exercises: ExercisesByDayProps;
+  }) => void;
+  day: number;
+  setDay: (value: number) => void;
 }
 
 export default function WorkoutPlan({
@@ -37,27 +48,17 @@ export default function WorkoutPlan({
   setHasStoredWorkout,
   isLoading,
   setIsLoading,
+  setIsEditingPlan,
+  exercisesByDay,
+  setExercisesByDay,
+  workoutPlan,
+  setWorkoutPlan,
+  day,
+  setDay,
 }: WorkoutPlanProps) {
   const { setIsCreatingWorkout } = useWorkoutContext();
   const [isBuilding, setIsBuilding] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
-
-  const [exercisesByDay, setExercisesByDay] = useState<ExercisesByDayProps>({
-    0: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
-    1: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
-    2: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
-    3: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
-    4: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
-    5: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
-    6: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
-  });
-
-  const [workoutPlan, setWorkoutPlan] = useState({
-    workoutName: "",
-    exercises: exercisesByDay,
-  });
-
-  const [day, setDay] = useState(0);
 
   const days = [
     "Monday",
@@ -90,7 +91,7 @@ export default function WorkoutPlan({
   };
 
   const handleTitleChange = (value: string) => {
-    setWorkoutPlan((prev) => ({ ...prev, workoutName: value }));
+    setWorkoutPlan({ ...workoutPlan, workoutName: value });
   };
 
   const addRow = () => {
@@ -107,11 +108,11 @@ export default function WorkoutPlan({
   };
 
   const nextDay = () => {
-    setDay((prevDay) => (prevDay + 1) % days.length);
+    setDay((day + 1) % days.length);
   };
 
   const prevDay = () => {
-    setDay((prevDay) => (prevDay - 1 + days.length) % days.length);
+    setDay((day - 1 + days.length) % days.length);
   };
 
   const handleSaveClick = async () => {
@@ -130,14 +131,15 @@ export default function WorkoutPlan({
         ])
       ),
     };
-    const { error } = await uploadWorkoutPlanToDB(sanitizedWorkoutPlan);
+    const { data, error } = await uploadWorkoutPlanToDB(sanitizedWorkoutPlan);
 
-    if (!error) {
+    if (!error && data) {
       setHasStoredWorkout(true);
+      setIsEditingPlan(false);
       onWorkoutSaved();
     }
 
-    setIsCreatingWorkout((prev: boolean) => !prev);
+    setIsCreatingWorkout(false);
     setIsBuilding(false);
     setIsLoading(false);
   };
@@ -157,12 +159,11 @@ export default function WorkoutPlan({
   };
 
   const handleCancel = () => {
+    const emptyPlan = getEmptyWorkoutPlan();
+    setExercisesByDay(emptyPlan.exercises);
+    setWorkoutPlan(emptyPlan);
+    setDay(0);
     setIsBuilding(false);
-
-    setWorkoutPlan({
-      workoutName: "",
-      exercises: exercisesByDay,
-    });
   };
 
   useEffect(() => {
@@ -219,46 +220,41 @@ export default function WorkoutPlan({
           <Input
             type="text"
             onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder="e.g., PPL Split..."
+            placeholder="PPL Split..."
             value={workoutPlan.workoutName}
-            className={`mt-2 max-w-md bg-white text-black ${
+            className={`mt-2 max-w-md bg-white text-black  ${
               isMobile ? "text-center" : ""
             }`}
           />
         </div>
-        <Card className=" mt-5">
+        <Card
+          className={`border border-gray-50 shadow-none ${
+            isMobile ? "mb-0" : ""
+          }`}
+        >
+          <div className="flex justify-between items-center p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
+            <Button onClick={prevDay} variant="outline" size="sm">
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              {!isMobile && <span>Previous</span>}
+            </Button>
+
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-black">{days[day]}</h3>
+              <p className="text-gray-600 text-sm">Day {day + 1} of 7</p>
+            </div>
+
+            <Button onClick={nextDay} variant="outline" size="sm">
+              {!isMobile && <span>Next</span>}
+
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </Card>
+        <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white rounded-2xl">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-black" />
+
           <CardContent className="p-6">
             <div className="space-y-6 relative">
-              <Card
-                className={`border border-gray-50 bg-gray-50 shadow-none ${
-                  isMobile ? "mb-0" : ""
-                }`}
-              >
-                <CardContent>
-                  <div className="flex justify-between items-center">
-                    <Button onClick={prevDay} variant="outline" size="sm">
-                      <ChevronLeft className="w-4 h-4 mr-1" />
-                      {!isMobile && <span>Previous</span>}
-                    </Button>
-
-                    <div className="text-center">
-                      <h3 className="text-2xl font-bold text-gray-900">
-                        {days[day]}
-                      </h3>
-                      {/* <p className="text-gray-500 text-sm font-medium">
-                        Day {day + 1} of 7
-                      </p> */}
-                    </div>
-
-                    <Button onClick={nextDay} variant="outline" size="sm">
-                      {!isMobile && <span>Next</span>}
-
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
               <div className="space-y-4">
                 <div
                   className={`flex ${
@@ -294,7 +290,7 @@ export default function WorkoutPlan({
                       <CardContent>
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end ">
                           <div className="lg:col-span-5">
-                            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                            <label className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2 ml-1">
                               Exercise
                             </label>
                             <Input
@@ -315,7 +311,7 @@ export default function WorkoutPlan({
                           <div className="flex flex-row gap-2 lg:col-span-6">
                             <div>
                               {!isMobile && (
-                                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                                <label className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2 ml-1">
                                   Sets
                                 </label>
                               )}
@@ -335,7 +331,7 @@ export default function WorkoutPlan({
                             </div>
                             <div>
                               {!isMobile && (
-                                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                                <label className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2 ml-1">
                                   Reps
                                 </label>
                               )}
@@ -355,7 +351,7 @@ export default function WorkoutPlan({
                             </div>
                             <div>
                               {!isMobile && (
-                                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                                <label className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2 ml-1">
                                   Weight
                                 </label>
                               )}
@@ -426,14 +422,14 @@ export default function WorkoutPlan({
                     <Button
                       onClick={handleCancel}
                       variant="outline"
-                      className="rounded-xl border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                      // className="rounded-xl border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
                     >
                       <X className="w-4 h-4 mr-2" />
                       Cancel
                     </Button>
                     <Button
                       onClick={handleSaveClick}
-                      className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200"
+                      // className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200"
                     >
                       <Save className="w-4 h-4 mr-2" />
                       Save Plan

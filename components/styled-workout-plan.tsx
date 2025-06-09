@@ -19,6 +19,7 @@ import {
 } from "@/lib/workouts";
 import { useSupabaseSession } from "@/providers/supabase-provider";
 import { v4 as uuidv4 } from "uuid";
+import { getEmptyWorkoutPlan } from "./get-empty-workout-plan";
 interface Exercise {
   id: string;
   keyId: string;
@@ -35,6 +36,13 @@ interface BuildWorkoutFormProps {
   setHasStoredWorkout: (value: boolean) => void;
   isLoading: boolean;
   setIsLoading: (value: boolean) => void;
+  setIsEditingPlan: (value: boolean) => void;
+  exercisesByDay: BuildWorkoutExercises;
+  setExercisesByDay: React.Dispatch<React.SetStateAction<BuildWorkoutExercises>>;
+  workoutPlan: { workoutName: string; exercises: BuildWorkoutExercises };
+  setWorkoutPlan: React.Dispatch<React.SetStateAction<{ workoutName: string; exercises: BuildWorkoutExercises }>>;
+  day: number;
+  setDay: React.Dispatch<React.SetStateAction<number>>;
 }
 
 interface StyledWorkoutPlanProps {
@@ -55,7 +63,20 @@ interface StyledWorkoutPlanProps {
     React.SetStateAction<Record<number, Exercise[]>>
   >;
   workoutId: string;
+  isEditingPlan: boolean;
+  setIsEditingPlan: (value: boolean) => void;
 }
+
+interface BuildWorkoutExercises {
+  [day: number]: {
+    id: string;
+    exercise: string;
+    sets: number | null;
+    reps: number | null;
+    weight: number | null;
+  }[];
+}
+
 
 export default function StyledWorkoutPlan({
   hasStoredWorkout,
@@ -73,9 +94,28 @@ export default function StyledWorkoutPlan({
   isCreatingWorkout,
   setExercisesGroupedByDay,
   workoutId,
+  isEditingPlan,
+  setIsEditingPlan,
 }: StyledWorkoutPlanProps) {
-  const [isEditingPlan, setIsEditingPlan] = useState(false);
+  // const [isEditingPlan, setIsEditingPlan] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  const [exercisesByDay, setExercisesByDay] = useState<BuildWorkoutExercises>({
+    0: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    1: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    2: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    3: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    4: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    5: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+    6: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
+  });
+
+  const [workoutPlan, setWorkoutPlan] = useState({
+    workoutName: "",
+    exercises: exercisesByDay,
+  });
+
+  const [day, setDay] = useState(0);
 
   const getExerciseInitials = (name: string) => {
     return name
@@ -217,6 +257,11 @@ export default function StyledWorkoutPlan({
 
       if (data?.success) {
         setHasStoredWorkout(false);
+        const emptyPlan = getEmptyWorkoutPlan();
+
+        setExercisesByDay(emptyPlan.exercises);
+        setWorkoutPlan(emptyPlan);
+        setDay(0);
       }
     } catch (err) {
       console.log(err);
@@ -231,6 +276,13 @@ export default function StyledWorkoutPlan({
         setHasStoredWorkout={setHasStoredWorkout}
         isLoading={isLoading}
         setIsLoading={setIsLoading}
+        setIsEditingPlan={setIsEditingPlan}
+        exercisesByDay={exercisesByDay}
+        setExercisesByDay={setExercisesByDay}
+        workoutPlan={workoutPlan}
+        setWorkoutPlan={setWorkoutPlan}
+        day={day}
+        setDay={setDay}
       />
 
       {!isCreatingWorkout && hasStoredWorkout && (

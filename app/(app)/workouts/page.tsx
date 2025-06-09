@@ -31,6 +31,7 @@ export default function Page() {
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
   const [, setIsMobile] = useState(false);
+  const [isEditingPlan, setIsEditingPlan] = useState(false);
 
   const days = [
     "Monday",
@@ -62,11 +63,12 @@ export default function Page() {
     }
 
     setWorkoutId(data[0].id);
-    setHasStoredWorkout(true);
-    setIsLoading(false);
     const dailyExercises = data[0].days;
     setWorkoutName(data[0].name);
     setExercisesGroupedByDay(dailyExercises as Record<number, WorkoutEntry[]>);
+    setHasStoredWorkout(true);
+    setIsLoading(false);
+    setIsEditingPlan(false);
   }, [
     session,
     setIsLoading,
@@ -149,6 +151,8 @@ export default function Page() {
           isCreatingWorkout={isCreatingWorkout}
           setExercisesGroupedByDay={setExercisesGroupedByDay}
           workoutId={workoutId || ""}
+          isEditingPlan={isEditingPlan}
+          setIsEditingPlan={setIsEditingPlan}
         />
 
         {/* <div className="flex flex-row gap-8">
