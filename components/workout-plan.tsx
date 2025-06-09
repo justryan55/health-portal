@@ -59,6 +59,8 @@ export default function WorkoutPlan({
   const { setIsCreatingWorkout } = useWorkoutContext();
   const [isBuilding, setIsBuilding] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
+  const isSaveDisabled =
+    !workoutPlan.workoutName || exercisesHaveInvalidInputs();
 
   const days = [
     "Monday",
@@ -69,6 +71,33 @@ export default function WorkoutPlan({
     "Saturday",
     "Sunday",
   ];
+
+  function exercisesHaveInvalidInputs() {
+    const exercises = exercisesByDay[day] || [];
+    return exercises.some((ex) => {
+      if (!ex.exercise || ex.exercise.trim() === "") return true;
+
+      const sets = Number(ex.sets);
+      const reps = Number(ex.reps);
+      const weight = Number(ex.weight);
+
+      if (
+        !ex.sets ||
+        !ex.reps ||
+        !ex.weight ||
+        isNaN(sets) ||
+        isNaN(reps) ||
+        isNaN(weight) ||
+        sets < 1 ||
+        reps < 1 ||
+        weight < 0
+      ) {
+        return true;
+      }
+
+      return false;
+    });
+  }
 
   const handleExerciseInputChange = (
     index: number,
@@ -428,6 +457,7 @@ export default function WorkoutPlan({
                       Cancel
                     </Button>
                     <Button
+                      disabled={isSaveDisabled}
                       onClick={handleSaveClick}
                       // className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200"
                     >

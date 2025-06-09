@@ -38,9 +38,16 @@ interface BuildWorkoutFormProps {
   setIsLoading: (value: boolean) => void;
   setIsEditingPlan: (value: boolean) => void;
   exercisesByDay: BuildWorkoutExercises;
-  setExercisesByDay: React.Dispatch<React.SetStateAction<BuildWorkoutExercises>>;
+  setExercisesByDay: React.Dispatch<
+    React.SetStateAction<BuildWorkoutExercises>
+  >;
   workoutPlan: { workoutName: string; exercises: BuildWorkoutExercises };
-  setWorkoutPlan: React.Dispatch<React.SetStateAction<{ workoutName: string; exercises: BuildWorkoutExercises }>>;
+  setWorkoutPlan: React.Dispatch<
+    React.SetStateAction<{
+      workoutName: string;
+      exercises: BuildWorkoutExercises;
+    }>
+  >;
   day: number;
   setDay: React.Dispatch<React.SetStateAction<number>>;
 }
@@ -76,7 +83,6 @@ interface BuildWorkoutExercises {
     weight: number | null;
   }[];
 }
-
 
 export default function StyledWorkoutPlan({
   hasStoredWorkout,
@@ -268,6 +274,22 @@ export default function StyledWorkoutPlan({
     }
   };
 
+  const isSaveDisabled = currentExercises.some((exercise) => {
+    return (
+      !exercise.exercise_name ||
+      exercise.exercise_name.trim() === "" ||
+      !exercise.sets ||
+      !exercise.reps ||
+      !exercise.weight ||
+      isNaN(exercise.sets) ||
+      isNaN(exercise.reps) ||
+      isNaN(exercise.weight) ||
+      exercise.sets < 1 ||
+      exercise.reps < 1 ||
+      exercise.weight < 0
+    );
+  });
+
   return (
     <div className="w-full space-y-6">
       <BuildWorkoutForm
@@ -334,6 +356,7 @@ export default function StyledWorkoutPlan({
                   {!isMobile && <>Add Exercise</>}
                 </Button>
                 <Button
+                  disabled={isSaveDisabled}
                   onClick={saveAllExercises}
                   className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                 >
@@ -453,6 +476,18 @@ export default function StyledWorkoutPlan({
                             // exercise.exercise_name &&
                             // exercise.exercise_name.trim() !== "" &&
                             <Button
+                              disabled={
+                                !exercise.exercise_name ||
+                                !exercise.sets ||
+                                !exercise.reps ||
+                                !exercise.weight ||
+                                isNaN(exercise.sets) ||
+                                isNaN(exercise.reps) ||
+                                isNaN(exercise.weight) ||
+                                exercise.sets < 1 ||
+                                exercise.reps < 1 ||
+                                exercise.weight < 0
+                              }
                               onClick={() =>
                                 uploadExerciseToDB(exercise, index)
                               }
