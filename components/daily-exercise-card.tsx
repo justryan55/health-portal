@@ -133,8 +133,6 @@ export default function DailyExerciseCard() {
         )
       );
 
-      console.log(exercises);
-
       setTempValues({ weight: undefined, reps: undefined, rpe: 5 });
       setIsAddingSet({ bool: false, exerciseId: "" });
     }
