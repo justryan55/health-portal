@@ -98,7 +98,6 @@ interface WorkoutPlanExercise {
 
 export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
   try {
-    console.log(workoutPlan);
     const exercisesByDay = workoutPlan.exercises;
 
     const { data: workoutData, error: workoutError } = await supabase
@@ -384,7 +383,6 @@ export const uploadExerciseToDB = async (
       .select()
       .single();
 
-    console.log("DDDDD", exerciseData);
     if (exerciseError) {
       console.log(exerciseError);
       return;
@@ -642,7 +640,6 @@ export const exerciseSuggestions = async (query: string) => {
     // if (!query || typeof query !== "string") {
     //   return res.status(400).json([]);
     // }
-
     const { data, error } = await supabase
       .from("exercise_library")
       .select("name, id")
