@@ -10,13 +10,15 @@ import DailyExerciseCard from "@/components/daily-exercise-card";
 
 import StyledWorkoutPlan from "@/components/styled-workout-plan";
 
-interface WorkoutEntry {
+interface Exercise {
+  id: string;
+  keyId: string;
   exercise_name: string;
   sets: number;
   reps: number;
   weight: number;
-  id: string;
-  keyId: string;
+  libraryId?: string;
+  isNew?: boolean;
 }
 
 export default function Page() {
@@ -24,7 +26,7 @@ export default function Page() {
   const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
   const [workoutId, setWorkoutId] = useState<string | null>(null);
   const [exercisesGroupedByDay, setExercisesGroupedByDay] = useState<
-    Record<number, WorkoutEntry[]>
+    Record<number, Exercise[]>
   >({});
   const [workoutName, setWorkoutName] = useState("");
   const { isCreatingWorkout } = useWorkoutContext();
@@ -65,7 +67,7 @@ export default function Page() {
     setWorkoutId(data[0].id);
     const dailyExercises = data[0].days;
     setWorkoutName(data[0].name);
-    setExercisesGroupedByDay(dailyExercises as Record<number, WorkoutEntry[]>);
+    setExercisesGroupedByDay(dailyExercises as Record<number, Exercise[]>);
     setHasStoredWorkout(true);
     setIsLoading(false);
     setIsEditingPlan(false);

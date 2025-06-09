@@ -21,14 +21,16 @@ import { useSupabaseSession } from "@/providers/supabase-provider";
 import { v4 as uuidv4 } from "uuid";
 import { getEmptyWorkoutPlan } from "./get-empty-workout-plan";
 import { ExerciseAutocompleteInput } from "./exercise-autocomplete-input";
+
 interface Exercise {
   id: string;
   keyId: string;
-  isNew?: boolean;
   exercise_name: string;
   sets: number;
   reps: number;
   weight: number;
+  libraryId?: string; 
+  isNew?: boolean;   
 }
 
 interface BuildWorkoutFormProps {

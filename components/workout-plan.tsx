@@ -13,13 +13,13 @@ import spinnerBlack from "@/public/spinner-black.svg";
 import { getEmptyWorkoutPlan } from "./get-empty-workout-plan";
 import { ExerciseAutocompleteInput } from "./exercise-autocomplete-input";
 
-export interface Exercise {
+interface Exercise {
   id: string;
   exercise: string;
-  libraryId: string;
   sets: number | null;
   reps: number | null;
   weight: number | null;
+  libraryId?: string;
 }
 
 export type ExercisesByDayProps = {
