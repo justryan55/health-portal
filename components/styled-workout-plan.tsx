@@ -115,6 +115,8 @@ export default function StyledWorkoutPlan({
     5: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
     6: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
   });
+  const [backupExercisesGroupedByDay, setBackupExercisesGroupedByDay] =
+    useState<Record<number, Exercise[]>>({});
 
   const [workoutPlan, setWorkoutPlan] = useState({
     workoutName: "",
@@ -185,23 +187,13 @@ export default function StyledWorkoutPlan({
     }
   };
 
+  const startEditing = () => {
+    setBackupExercisesGroupedByDay(exercisesGroupedByDay);
+    setIsEditingPlan(true);
+  };
+
   const cancelEditing = () => {
-    setExercisesGroupedByDay((prev) => {
-      const dayExercises = prev[currentDayIndex];
-
-      if (!dayExercises) {
-        console.log(
-          "No exercises found for current day index:",
-          currentDayIndex
-        );
-        return prev;
-      }
-      return {
-        ...prev,
-        [currentDayIndex]: dayExercises.filter((exercise) => !exercise.isNew),
-      };
-    });
-
+    setExercisesGroupedByDay(backupExercisesGroupedByDay);
     setIsEditingPlan(false);
   };
 
@@ -330,7 +322,7 @@ export default function StyledWorkoutPlan({
                 </Button> */}
                 {/* {currentExercises.length > 0 && ( */}
                 <Button
-                  onClick={() => setIsEditingPlan(true)}
+                  onClick={startEditing}
                   className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                 >
                   <Edit className="w-4 h-4 inline" />
