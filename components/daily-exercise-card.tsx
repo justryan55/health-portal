@@ -98,7 +98,13 @@ export default function DailyExerciseCard() {
     field: "weight" | "reps",
     value: string
   ) => {
-    const result = await updateSet(set, field, Number(value));
+    const numeric = value === "" ? undefined : Number(value);
+
+    if (numeric === undefined || isNaN(numeric)) {
+      return;
+    }
+
+    const result = await updateSet(set, field, numeric);
 
     if (result) {
       setExercises((prev) =>
@@ -106,7 +112,7 @@ export default function DailyExerciseCard() {
           ...exercise,
           sets: exercise.sets.map((exerciseSet: WorkoutSet) =>
             exerciseSet.setId === set.setId
-              ? { ...exerciseSet, [field]: Number(value) }
+              ? { ...exerciseSet, [field]: numeric }
               : exerciseSet
           ),
         }))
@@ -244,13 +250,19 @@ export default function DailyExerciseCard() {
     field: string,
     value: string
   ) => {
+    const numeric = value === "" ? undefined : Number(value);
+
+    if (numeric === undefined || isNaN(numeric)) {
+      return;
+    }
+
     setExercises((prev) =>
       (prev ?? []).map((exercise) => {
         if (exercise.id === exerciseId) {
           const updatedSets = exercise.sets.map(
             (set: WorkoutSet, index: number) => {
               if (index === setIndex) {
-                return { ...set, [field]: value };
+                return { ...set, [field]: numeric };
               }
               return set;
             }
@@ -546,6 +558,17 @@ export default function DailyExerciseCard() {
                             {!isMobile && <span>Cancel</span>}
                           </Button>{" "}
                           <Button
+                            disabled={
+                              !exercise.name?.trim() ||
+                              !exercise.sets.length ||
+                              exercise.sets.some(
+                                (set) =>
+                                  !set.weight ||
+                                  set.weight <= 0 ||
+                                  !set.reps ||
+                                  set.reps < 1
+                              )
+                            }
                             onClick={() => uploadExercise(exercise)}
                             size="sm"
                             variant="outline"
@@ -591,6 +614,18 @@ export default function DailyExerciseCard() {
                                 isEditing.exercise.id === exercise.id) ? (
                                 <div className="flex justify-center">
                                   <Input
+                                    type="number"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    onKeyDown={(e) => {
+                                      if (
+                                        ["e", "E", "+", "-"].includes(e.key)
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    min={0}
+                                    value={set.weight ?? ""}
                                     placeholder={String(set.weight) || "Weight"}
                                     className="text-center max-w-30 bg-white"
                                     onChange={(e) =>
@@ -614,9 +649,20 @@ export default function DailyExerciseCard() {
                                 set.isNew ? (
                                 <div className="flex justify-center">
                                   <Input
+                                    type="number"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    onKeyDown={(e) => {
+                                      if (
+                                        ["e", "E", "+", "-"].includes(e.key)
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    min={0}
+                                    value={tempValues.weight ?? ""}
                                     placeholder="Weight"
                                     className="text-center max-w-30 bg-white"
-                                    value={tempValues.weight}
                                     onChange={(e) =>
                                       setTempValues((prev) => ({
                                         ...prev,
@@ -643,6 +689,18 @@ export default function DailyExerciseCard() {
                                 isEditing.exercise.id === exercise.id) ? (
                                 <div className="flex justify-center">
                                   <Input
+                                    type="number"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    onKeyDown={(e) => {
+                                      if (
+                                        ["e", "E", "+", "-"].includes(e.key)
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    min={0}
+                                    value={set.reps ?? ""}
                                     placeholder={String(set.reps) || "Reps"}
                                     className="text-center max-w-30 bg-white"
                                     onChange={(e) =>
@@ -667,9 +725,20 @@ export default function DailyExerciseCard() {
                                 String(set.reps) === "" ? (
                                 <div className="flex justify-center">
                                   <Input
+                                    type="number"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    onKeyDown={(e) => {
+                                      if (
+                                        ["e", "E", "+", "-"].includes(e.key)
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    min={0}
+                                    value={tempValues.reps ?? ""}
                                     placeholder="Reps"
                                     className="text-center max-w-30 bg-white"
-                                    value={tempValues.reps}
                                     onChange={(e) =>
                                       setTempValues((prev) => ({
                                         ...prev,
@@ -730,7 +799,7 @@ export default function DailyExerciseCard() {
                                   onRpeChange={(newRpe) => {
                                     setTempValues((prev) => ({
                                       ...prev,
-                                      rpe: newRpe,
+                                      rpe: Number(newRpe),
                                     }));
                                     setExercises((prev) =>
                                       (prev ?? []).map((ex) => {
