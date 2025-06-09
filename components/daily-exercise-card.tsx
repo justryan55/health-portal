@@ -562,7 +562,7 @@ export default function DailyExerciseCard() {
                               !exercise.name?.trim() ||
                               !exercise.sets.length ||
                               exercise.sets.some(
-                                (set) =>
+                                (set: WorkoutSet) =>
                                   !set.weight ||
                                   set.weight <= 0 ||
                                   !set.reps ||
