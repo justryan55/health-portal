@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { MoreHorizontal } from "lucide-react";
+import { Edit, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -81,15 +81,20 @@ export function ComboboxDropdownMenu({
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem onClick={handleAddSetClick}>
+                <Plus className="w-4 h-4" />
                 Add Set
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={handleEditClick}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleEditClick}>
+              <Edit className="w-4 h-4" />
+              Edit
+            </DropdownMenuItem>
 
             <DropdownMenuItem
               onClick={handleDeleteClick}
               className="text-red-600"
             >
+              <Trash2 className="text-red w-4 h-4" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuGroup>
