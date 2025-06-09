@@ -57,6 +57,7 @@ export const ExerciseAutocompleteInput = ({
   return (
     <div className={`relative w-full mr-2 ${isMobile && "mr-2"}`}>
       <Input
+        className="border-gray-200 bg-white"
         value={query}
         onChange={handleInput}
         placeholder={`${exercise.name}` || `Exercise`}

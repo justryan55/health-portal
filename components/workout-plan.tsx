@@ -11,16 +11,18 @@ import { nanoid } from "nanoid";
 import Image from "next/image";
 import spinnerBlack from "@/public/spinner-black.svg";
 import { getEmptyWorkoutPlan } from "./get-empty-workout-plan";
+import { ExerciseAutocompleteInput } from "./exercise-autocomplete-input";
 
-interface Exercise {
+export interface Exercise {
   id: string;
   exercise: string;
+  libraryId: string;
   sets: number | null;
   reps: number | null;
   weight: number | null;
 }
 
-type ExercisesByDayProps = {
+export type ExercisesByDayProps = {
   [day: number]: Exercise[];
 };
 
@@ -102,21 +104,33 @@ export default function WorkoutPlan({
   const handleExerciseInputChange = (
     index: number,
     field: keyof Exercise,
-    value: string
+    value: string | { name: string; id: string }
   ) => {
     const dayExercises = exercisesByDay[day] || [];
     const updatedExercises = [...dayExercises];
-    updatedExercises[index] = {
-      ...updatedExercises[index],
-      [field]: field === "exercise" ? value : Number(value) || null,
-    };
+
+    if (field === "exercise" && typeof value === "object") {
+      updatedExercises[index] = {
+        ...updatedExercises[index],
+        exercise: value.name,
+        libraryId: value.id,
+      };
+    } else {
+      updatedExercises[index] = {
+        ...updatedExercises[index],
+        [field]: field === "exercise" ? value : Number(value) || null,
+      };
+    }
 
     setExercisesByDay({
       ...exercisesByDay,
       [day]: updatedExercises,
     });
 
-    setWorkoutPlan({ ...workoutPlan, exercises: exercisesByDay });
+    setWorkoutPlan({
+      ...workoutPlan,
+      exercises: { ...exercisesByDay, [day]: updatedExercises },
+    });
   };
 
   const handleTitleChange = (value: string) => {
@@ -127,7 +141,14 @@ export default function WorkoutPlan({
     const dayExercises = exercisesByDay[day] || [];
     const updatedExercises = [
       ...dayExercises,
-      { id: nanoid(), exercise: "", sets: null, reps: null, weight: null },
+      {
+        id: nanoid(),
+        exercise: "",
+        libraryId: "",
+        sets: null,
+        reps: null,
+        weight: null,
+      },
     ];
 
     setExercisesByDay({
@@ -160,6 +181,7 @@ export default function WorkoutPlan({
         ])
       ),
     };
+    console.log(sanitizedWorkoutPlan);
     const { data, error } = await uploadWorkoutPlanToDB(sanitizedWorkoutPlan);
 
     if (!error && data) {
@@ -322,18 +344,16 @@ export default function WorkoutPlan({
                             <label className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2 ml-1">
                               Exercise
                             </label>
-                            <Input
-                              type="text"
-                              placeholder="Bench Press"
-                              value={row.exercise !== null ? row.exercise : ""}
-                              onChange={(e) =>
+                            <ExerciseAutocompleteInput
+                              exercise={{ id: "", name: row.exercise ?? "" }}
+                              handleChange={(id, value) =>
                                 handleExerciseInputChange(
                                   index,
                                   "exercise",
-                                  e.target.value
+                                  value
                                 )
                               }
-                              className="border-gray-200 bg-white"
+                              isMobile={isMobile ?? false}
                             />
                           </div>
 

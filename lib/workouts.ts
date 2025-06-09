@@ -6,6 +6,7 @@ interface Exercise {
   sets: number;
   reps: number;
   weight: number;
+  libraryId?: string;
 }
 
 interface ExercisesByDay {
@@ -97,6 +98,7 @@ interface WorkoutPlanExercise {
 
 export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
   try {
+    console.log(workoutPlan);
     const exercisesByDay = workoutPlan.exercises;
 
     const { data: workoutData, error: workoutError } = await supabase
@@ -153,6 +155,7 @@ export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
         sets: ex.sets || null,
         reps: ex.reps || null,
         weight: ex.weight || null,
+        exercise_library_id: ex.libraryId || null,
       }));
 
       const { error: wdeError } = await supabase
