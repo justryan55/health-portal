@@ -20,6 +20,7 @@ import {
 import { useSupabaseSession } from "@/providers/supabase-provider";
 import { v4 as uuidv4 } from "uuid";
 import { getEmptyWorkoutPlan } from "./get-empty-workout-plan";
+import { ExerciseAutocompleteInput } from "./exercise-autocomplete-input";
 interface Exercise {
   id: string;
   keyId: string;
@@ -115,8 +116,6 @@ export default function StyledWorkoutPlan({
     5: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
     6: [{ id: nanoid(), exercise: "", sets: null, reps: null, weight: null }],
   });
-  const [backupExercisesGroupedByDay, setBackupExercisesGroupedByDay] =
-    useState<Record<number, Exercise[]>>({});
 
   const [workoutPlan, setWorkoutPlan] = useState({
     workoutName: "",
@@ -187,13 +186,23 @@ export default function StyledWorkoutPlan({
     }
   };
 
-  const startEditing = () => {
-    setBackupExercisesGroupedByDay(exercisesGroupedByDay);
-    setIsEditingPlan(true);
-  };
-
   const cancelEditing = () => {
-    setExercisesGroupedByDay(backupExercisesGroupedByDay);
+    setExercisesGroupedByDay((prev) => {
+      const dayExercises = prev[currentDayIndex];
+
+      if (!dayExercises) {
+        console.log(
+          "No exercises found for current day index:",
+          currentDayIndex
+        );
+        return prev;
+      }
+      return {
+        ...prev,
+        [currentDayIndex]: dayExercises.filter((exercise) => !exercise.isNew),
+      };
+    });
+
     setIsEditingPlan(false);
   };
 
@@ -322,7 +331,7 @@ export default function StyledWorkoutPlan({
                 </Button> */}
                 {/* {currentExercises.length > 0 && ( */}
                 <Button
-                  onClick={startEditing}
+                  onClick={() => setIsEditingPlan(true)}
                   className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                 >
                   <Edit className="w-4 h-4 inline" />
@@ -400,7 +409,7 @@ export default function StyledWorkoutPlan({
 
                 return (
                   <div
-                    key={exercise.keyId}
+                    key={exercise.id}
                     className="group relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white rounded-2xl"
                   >
                     <div className="absolute top-0 left-0 right-0 h-1 bg-black" />
@@ -419,18 +428,26 @@ export default function StyledWorkoutPlan({
                           )} */}
 
                           {isEditingThisExercise ? (
-                            <Input
-                              placeholder="Exercise"
-                              value={exercise.exercise_name || ""}
-                              className={`${isMobile && "mr-2"}`}
-                              onChange={(e) =>
+                            <ExerciseAutocompleteInput
+                              exercise={{
+                                id: exercise.id,
+                                name: exercise.exercise_name,
+                              }}
+                              isMobile={isMobile ?? false}
+                              handleChange={(exerciseId, value) => {
                                 updateExercise(
                                   currentDayIndex,
                                   index,
                                   "exercise_name",
-                                  e.target.value
-                                )
-                              }
+                                  value.name
+                                );
+                                updateExercise(
+                                  currentDayIndex,
+                                  index,
+                                  "exercise_id",
+                                  value.id
+                                );
+                              }}
                             />
                           ) : (
                             <h3 className="text-l font-bold text-gray-800">

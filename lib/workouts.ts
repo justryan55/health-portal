@@ -92,6 +92,7 @@ interface WorkoutPlanExercise {
   sets: number;
   reps: number;
   weight: number;
+  exercise_id?: string;
 }
 
 export const uploadWorkoutPlanToDB = async (workoutPlan: WorkoutPlan) => {
@@ -551,16 +552,16 @@ export const updateWorkoutPlan = async (
       sets: number;
       reps: number;
       weight: number;
-      rpe: number;
       exercise_name: string;
       workout_day_id: string;
+      exercise_library_id?: string;
     } = {
       sets: exercise.sets,
       reps: exercise.reps,
-      rpe: exercise.reps,
       weight: exercise.weight,
       exercise_name: exercise.exercise_name,
       workout_day_id: typedWorkoutDay.id,
+      exercise_library_id: exercise.exercise_id || undefined,
     };
 
     if (exercise.id) {

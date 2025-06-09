@@ -39,7 +39,7 @@ export const ExerciseAutocompleteInput = ({
 
     const debounceTimeout = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(debounceTimeout);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   const selectSuggestion = (suggestion: Exercise) => {
@@ -51,12 +51,16 @@ export const ExerciseAutocompleteInput = ({
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
-    handleChange(exercise.id, { name: e.target.value, id: '' });
+    handleChange(exercise.id, { name: e.target.value, id: "" });
   };
 
   return (
     <div className={`relative w-full mr-2 ${isMobile && "mr-2"}`}>
-      <Input value={query} onChange={handleInput} placeholder="Exercise" />
+      <Input
+        value={query}
+        onChange={handleInput}
+        placeholder={`${exercise.name}` || `Exercise`}
+      />
       {suggestions.length > 0 && (
         <ul className="absolute z-10 mt-1 w-full bg-white border rounded shadow">
           {suggestions.map((sug) => (
@@ -73,5 +77,3 @@ export const ExerciseAutocompleteInput = ({
     </div>
   );
 };
-
-//Add id to workout id to exercise
