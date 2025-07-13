@@ -4,6 +4,7 @@ import {
   IconDotsVertical,
   IconLogout,
   IconNotification,
+  IconUser,
   IconUserCircle,
 } from "@tabler/icons-react";
 
@@ -27,10 +28,12 @@ import { redirect } from "next/navigation";
 import { useUser } from "@/providers/user-provider";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/supabase-client";
+import { useRouter } from "next/navigation";
 
 export function NavUser() {
   const { user } = useUser();
   const [userInitials, setUserInitials] = useState("");
+  const router = useRouter();
 
   const { isMobile } = useSidebar();
 
@@ -52,6 +55,10 @@ export function NavUser() {
       setUserInitials(firstInitial + secondInitial);
     }
   }, [user]);
+
+  const handleNavigation = (url: string) => {
+    router.push(url.toLowerCase());
+  };
 
   return (
     <SidebarMenu>
@@ -101,18 +108,24 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <IconUserCircle />
                 Account
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               {/* <DropdownMenuItem>
                 <IconCreditCard />
                 Billing
               </DropdownMenuItem> */}
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleNavigation("/settings/profile")}
+              >
+                <IconUser />
+                Profile
+              </DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <IconNotification />
                 Notifications
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logOut}>

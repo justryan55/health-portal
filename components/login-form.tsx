@@ -116,7 +116,7 @@ export function LoginForm({
           return;
         }
 
-        router.push("/login");
+        router.push("/auth/login");
       }
 
       if (pathname === "/auth/login") {

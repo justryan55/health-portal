@@ -29,8 +29,8 @@ interface Exercise {
   sets: number;
   reps: number;
   weight: number;
-  libraryId?: string; 
-  isNew?: boolean;   
+  libraryId?: string;
+  isNew?: boolean;
 }
 
 interface BuildWorkoutFormProps {
@@ -337,7 +337,8 @@ export default function StyledWorkoutPlan({
                   className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                 >
                   <Edit className="w-4 h-4 inline" />
-                  {!isMobile && <>Edit Plan</>}
+                  {/* {!isMobile && <>Edit Plan</>} */}
+                  Edit Plan
                 </Button>
                 {/* )} */}
               </div>

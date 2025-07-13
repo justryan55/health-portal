@@ -12,6 +12,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { fetchExerciseDays } from "@/lib/workouts";
 
 export function DatePicker({
   date,
@@ -21,6 +22,7 @@ export function DatePicker({
   setDate: (date: Date) => void;
 }) {
   const [isMobile, setIsMobile] = React.useState<boolean | null>(null);
+  const [workoutDates, setWorkoutDates] = React.useState<Date[] | null>(null);
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -35,6 +37,20 @@ export function DatePicker({
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  const getExerciseDays = async () => {
+    const res = await fetchExerciseDays();
+
+    if (!res?.success) return;
+
+    const dates = res?.data.map((item) => new Date(item.date));
+
+    setWorkoutDates(dates);
+  };
+
+  React.useEffect(() => {
+    getExerciseDays();
+  }, [date]);
 
   return (
     <Popover>
@@ -60,6 +76,12 @@ export function DatePicker({
             if (selected && (!date || selected.getTime() !== date.getTime())) {
               setDate(selected);
             }
+          }}
+          modifiers={{
+            workout: workoutDates || [],
+          }}
+          modifiersClassNames={{
+            workout: "workout-day",
           }}
           initialFocus
         />

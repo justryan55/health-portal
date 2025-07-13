@@ -232,7 +232,7 @@ export const fetchWeeklyPlan = async (session: Session) => {
       for (const day of workoutDays as WorkoutDay[]) {
         const { data: exercises, error: exercisesError } = await supabase
           .from("workout_day_exercises")
-          .select("id, exercise_name, sets, reps, weight")
+          .select("id, exercise_name, sets, reps, weight, exercise_library_id")
           .eq("workout_day_id", day.id)
           .eq("is_deleted", false)
           .order("created_at", { ascending: true });
@@ -338,7 +338,6 @@ export const uploadExerciseToDB = async (
   date: string
 ) => {
   try {
-    console.log(exercise);
     if (!session || !session.user) return;
     const userId = session.user.id;
 
@@ -378,6 +377,7 @@ export const uploadExerciseToDB = async (
           daily_workout_id: dailyWorkout.id,
           name: exercise.name,
           exercise_library_id: exercise.libraryId || null,
+          date_completed: date,
         },
       ])
       .select()
@@ -652,6 +652,111 @@ export const exerciseSuggestions = async (query: string) => {
     }
     const results = data.map(({ id, name }) => ({ id, name }));
     return { success: true, data: results };
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const fetchUserExercises = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("exercises")
+      .select("name, id")
+      .eq("user_id", userId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      return {
+        success: false,
+      };
+    }
+
+    const exercisesExDuplicates = data.reduce<string[]>((acc, item) => {
+      if (!acc.includes(item.name)) {
+        acc.push(item.name);
+      }
+      return acc;
+    }, []);
+
+    return {
+      success: true,
+      data: exercisesExDuplicates,
+    };
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const fetchExerciseStats = async (userId: string, exercise: string) => {
+  try {
+    const { data: exerciseData, error: exerciseError } = await supabase
+      .from("exercises")
+      .select("name, id, date_completed")
+      .eq("user_id", userId)
+      .eq("name", exercise)
+      .eq("is_deleted", false);
+
+    if (exerciseError) {
+      return {
+        success: false,
+      };
+    }
+
+    const exerciseWithSets = await Promise.all(
+      exerciseData.map(async (exercise) => {
+        const { data: setsData, error: setsError } = await supabase
+          .from("sets")
+          .select("weight, reps, rpe, completed_at")
+          .eq("exercise_id", exercise.id);
+
+        if (setsError) {
+          console.log("setsError", setsError);
+          return { id: exercise.id, name: exercise.name, sets: [] };
+        }
+
+        return {
+          id: exercise.id,
+          name: exercise.name,
+          date_completed: exercise.date_completed,
+          sets: setsData,
+        };
+      })
+    );
+
+    console.log(exerciseWithSets);
+
+    return {
+      success: true,
+      data: exerciseWithSets,
+    };
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const fetchExerciseDays = async () => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("daily_workouts")
+      .select("date")
+      .eq("user", user.id);
+
+    if (error) {
+      return {
+        success: false,
+      };
+    }
+
+    return {
+      success: true,
+      data,
+    };
   } catch (err) {
     console.log(err);
   }

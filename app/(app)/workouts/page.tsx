@@ -34,6 +34,7 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
   const [, setIsMobile] = useState(false);
   const [isEditingPlan, setIsEditingPlan] = useState(false);
+const [activeSlider, setActiveSlider] = useState(null);
 
   const days = [
     "Monday",
@@ -134,7 +135,7 @@ export default function Page() {
             className="rounded-md border shadow"
           />
         )} */}
-          <DailyExerciseCard />
+          <DailyExerciseCard activeSlider={activeSlider} setActiveSlider={setActiveSlider} />
         </div>
 
         <StyledWorkoutPlan

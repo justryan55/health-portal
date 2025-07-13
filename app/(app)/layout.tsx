@@ -9,6 +9,8 @@ import { createServerClientInstance } from "@/lib/supabase/supabase-server";
 import { SupabaseProvider } from "@/providers/supabase-provider";
 import { WorkoutProvider } from "@/providers/workout-provider";
 import { DateProvider } from "@/providers/date-provider";
+import ProfileProvider from "@/providers/profile-provider";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "Forge Health Portal",
@@ -35,23 +37,26 @@ export default async function RootLayout({
         <SupabaseProvider>
           <DateProvider>
             <UserProvider>
-              <WorkoutProvider>
-                <SidebarProvider
-                  style={
-                    {
-                      "--sidebar-width": "calc(var(--spacing) * 72)",
-                      "--header-height": "calc(var(--spacing) * 12)",
-                    } as React.CSSProperties
-                  }
-                >
-                  <AppSidebar variant="inset" />
-                  <SidebarInset>
-                    <SiteHeader />
+              <ProfileProvider>
+                <WorkoutProvider>
+                  <SidebarProvider
+                    style={
+                      {
+                        "--sidebar-width": "calc(var(--spacing) * 72)",
+                        "--header-height": "calc(var(--spacing) * 12)",
+                      } as React.CSSProperties
+                    }
+                  >
+                    <AppSidebar variant="inset" />
+                    <SidebarInset>
+                      <SiteHeader />
 
-                    {children}
-                  </SidebarInset>
-                </SidebarProvider>
-              </WorkoutProvider>
+                      {children}
+                      <Toaster />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </WorkoutProvider>
+              </ProfileProvider>
             </UserProvider>
           </DateProvider>
         </SupabaseProvider>

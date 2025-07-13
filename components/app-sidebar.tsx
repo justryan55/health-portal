@@ -13,6 +13,7 @@ import {
   IconReport,
   IconSearch,
   IconSettings,
+  IconGraph,
   // IconUsers,
 } from "@tabler/icons-react";
 
@@ -59,10 +60,15 @@ const data = {
     //   icon: IconUsers,
     // },
     {
-      title: "Coach (AI Assistant)",
-      url: "/coach",
-      icon: IconDatabase,
+      title: "Progress",
+      url: "/progress",
+      icon: IconGraph,
     },
+    // {
+    //   title: "Coach (AI Assistant)",
+    //   url: "/coach",
+    //   icon: IconDatabase,
+    // },
   ],
   navSecondary: [
     {

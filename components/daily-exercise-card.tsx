@@ -6,18 +6,20 @@ import { useSupabaseSession } from "@/providers/supabase-provider";
 import {
   addSet,
   fetchDailyWorkout,
+  fetchExercisesFromTemplate,
+  fetchWeeklyPlan,
   updateSet,
   uploadExerciseToDB,
 } from "@/lib/workouts";
 import { useDate } from "@/providers/date-provider";
-import { Plus, Save, X } from "lucide-react";
+import { FilePlus2, Plus, Save, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { ComboboxDropdownMenu } from "./combobox-dropdown-menu";
 import { Input } from "./ui/input";
 import spinnerBlack from "@/public/spinner-black.svg";
 import Image from "next/image";
 import { ExerciseAutocompleteInput } from "./exercise-autocomplete-input";
-import NumberSlider from "./number-slider";
+import { DynamicSlider } from "../components/dynamic-slider";
 
 interface WorkoutSet {
   isNew?: boolean;
@@ -28,7 +30,7 @@ interface WorkoutSet {
   rpe: number;
 }
 
-export default function DailyExerciseCard() {
+export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [exercises, setExercises] = useState<any[] | null>(null);
 
@@ -141,6 +143,7 @@ export default function DailyExerciseCard() {
 
       setTempValues({ weight: undefined, reps: undefined, rpe: 5 });
       setIsAddingSet({ bool: false, exerciseId: "" });
+      setActiveSlider(null);
     }
   };
 
@@ -211,6 +214,28 @@ export default function DailyExerciseCard() {
 
     setHasStoredWorkout(true);
     setIsCreatingWorkout(true);
+  };
+
+  const quickAddExercises = async () => {
+    const res = await fetchWeeklyPlan(session);
+    const weeklyExercises = res?.[0].days;
+    const dayIndex = (date.getDay() + 6) % 7;
+    const dailyExercises = weeklyExercises[dayIndex];
+
+    if (!dailyExercises || dailyExercises.length === 0) return;
+
+    const transformed = dailyExercises.map((exercise) => ({
+      id: nanoid(),
+      isNew: true,
+      name: exercise.exercise_name || "Exercise",
+      libraryId: exercise.exercise_library_id || "",
+      sets: Array.from({ length: exercise.sets || 1 }).map(() => ({
+        weight: String(exercise.weight ?? ""),
+        reps: String(exercise.reps ?? ""),
+      })),
+    }));
+
+    setExercises((prev) => [...(prev || []), ...transformed]);
   };
 
   const addSetToNewExercise = (exerciseId: string) => {
@@ -324,6 +349,7 @@ export default function DailyExerciseCard() {
     setExercises((prev) =>
       (prev ?? []).filter((ex) => ex.id !== exerciseToCancel.id)
     );
+    setActiveSlider(null);
   };
 
   const cancelLastSet = (exercise: { id: string; sets: WorkoutSet[] }) => {
@@ -360,10 +386,12 @@ export default function DailyExerciseCard() {
 
       return { bool: true, exerciseId: exercise.id };
     });
+    setActiveSlider(null);
   };
 
   const handleSaveEdit = () => {
     setIsEditing({ bool: false, exercise: {} });
+    setActiveSlider(null);
   };
 
   const handleRpeChange = (
@@ -436,14 +464,24 @@ export default function DailyExerciseCard() {
               })}
             </p>
           </div>
-          <Button
-            onClick={() => addExercise()}
-            className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-          >
-            <Plus className="w-4 h-4 inline" />
-            {/* {!isMobile && <>Add Exercise</>} */}
-            Add Exercise
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => addExercise()}
+              className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+            >
+              <Plus className="w-4 h-4 inline" />
+              {/* {!isMobile && <>Add Exercise</>} */}
+              Add Exercise
+            </Button>
+            <Button
+              onClick={() => quickAddExercises()}
+              className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+            >
+              <FilePlus2 className="w-4 h-4 inline" />
+              {/* {!isMobile && <>Add Exercise</>} */}
+              Quick Add
+            </Button>
+          </div>
         </div>
       )}
 
@@ -563,8 +601,8 @@ export default function DailyExerciseCard() {
                               !exercise.sets.length ||
                               exercise.sets.some(
                                 (set: WorkoutSet) =>
-                                  !set.weight ||
-                                  set.weight <= 0 ||
+                                  set.weight == null ||
+                                  set.weight < 0 ||
                                   !set.reps ||
                                   set.reps < 1
                               )
@@ -624,9 +662,16 @@ export default function DailyExerciseCard() {
                                         e.preventDefault();
                                       }
                                     }}
+                                    onFocus={() =>
+                                      setActiveSlider({
+                                        type: "weight",
+                                        exerciseId: exercise.id,
+                                        setIndex: index,
+                                      })
+                                    }
                                     min={0}
                                     value={set.weight ?? ""}
-                                    placeholder={String(set.weight) || "Weight"}
+                                    placeholder="Weight"
                                     className="text-center max-w-30 bg-white"
                                     onChange={(e) =>
                                       exercise.isNew
@@ -659,6 +704,13 @@ export default function DailyExerciseCard() {
                                         e.preventDefault();
                                       }
                                     }}
+                                    onFocus={() =>
+                                      setActiveSlider({
+                                        type: "weight",
+                                        exerciseId: exercise.id,
+                                        setIndex: index,
+                                      })
+                                    }
                                     min={0}
                                     value={tempValues.weight ?? ""}
                                     placeholder="Weight"
@@ -677,13 +729,7 @@ export default function DailyExerciseCard() {
                                 </div>
                               )}
                             </div>
-
                             <div className="text-center">
-                              {/* {!isMobile && (
-                              <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">
-                                Reps
-                              </div>
-                            )} */}
                               {exercise.isNew ||
                               (isEditing.bool &&
                                 isEditing.exercise.id === exercise.id) ? (
@@ -699,9 +745,16 @@ export default function DailyExerciseCard() {
                                         e.preventDefault();
                                       }
                                     }}
+                                    onFocus={() =>
+                                      setActiveSlider({
+                                        type: "reps",
+                                        exerciseId: exercise.id,
+                                        setIndex: index,
+                                      })
+                                    }
                                     min={0}
                                     value={set.reps ?? ""}
-                                    placeholder={String(set.reps) || "Reps"}
+                                    placeholder="Reps"
                                     className="text-center max-w-30 bg-white"
                                     onChange={(e) =>
                                       exercise.isNew
@@ -735,6 +788,13 @@ export default function DailyExerciseCard() {
                                         e.preventDefault();
                                       }
                                     }}
+                                    onFocus={() =>
+                                      setActiveSlider({
+                                        type: "reps",
+                                        exerciseId: exercise.id,
+                                        setIndex: index,
+                                      })
+                                    }
                                     min={0}
                                     value={tempValues.reps ?? ""}
                                     placeholder="Reps"
@@ -753,70 +813,153 @@ export default function DailyExerciseCard() {
                                 </div>
                               )}
                             </div>
-                            <div className="text-md text-center font-bold text-gray-800 ">
-                              {set.rpe ?? 5}
-                            </div>
-                            {/* {isAddingSet.bool &&
-                            index + 1 === array.length &&
-                            isAddingSet.exerciseId === exercise.id && (
-                              <Button
-                                onClick={() => handleAddSet(exercise)}
-                                size="sm"
-                                className="px-3 max-w-max"
-                                variant="outline"
-                              >
-                                <span className="sr-only">Add Set</span>
-                                <Save />
-                              </Button>
-                            )} */}
-                            {/* <div className="col-span-3 flex items-center justify-center w-full">
-                            {exercise.isNew && index + 1 === array.length && (
-                              <div className="flex flex-col w-full">
-                                <Separator className="w-full mb-2" />
-                                <div className="flex justify-center items-center w-full pb-3">
-                                  <Button
-                                    onClick={() =>
-                                      addSetToNewExercise(exercise.id)
-                                    }
-                                    size="sm"
-                                    className="px-3 max-w-max"
-                                    variant="outline"
-                                  >
-                                    <span className="sr-only">Add Set</span>
-                                    <Plus />
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-                          </div> */}
-                          </div>
-                          {isAddingSet.bool &&
-                            isAddingSet.exerciseId === exercise.id &&
-                            set.isNew && (
-                              <div className="mt-3">
-                                <NumberSlider
-                                  rpe={set.rpe ?? 5}
-                                  onRpeChange={(newRpe) => {
-                                    setTempValues((prev) => ({
-                                      ...prev,
-                                      rpe: Number(newRpe),
-                                    }));
-                                    setExercises((prev) =>
-                                      (prev ?? []).map((ex) => {
-                                        if (ex.id === exercise.id) {
-                                          return {
-                                            ...ex,
-                                            sets: ex.sets.map(
-                                              (s: WorkoutSet, i: number) =>
-                                                i === index
-                                                  ? { ...s, rpe: newRpe }
-                                                  : s
-                                            ),
-                                          };
-                                        }
-                                        return ex;
+                            <div className="text-center">
+                              {exercise.isNew ||
+                              (isEditing.bool &&
+                                isEditing.exercise.id === exercise.id) ? (
+                                <div className="flex justify-center">
+                                  <Input
+                                    type="number"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    onKeyDown={(e) => {
+                                      if (
+                                        ["e", "E", "+", "-"].includes(e.key)
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onFocus={() =>
+                                      setActiveSlider({
+                                        type: "rpe",
+                                        exerciseId: exercise.id,
+                                        setIndex: index,
                                       })
-                                    );
+                                    }
+                                    min={1}
+                                    max={10}
+                                    value={set.rpe ?? ""}
+                                    placeholder="RPE"
+                                    className="text-center max-w-30 bg-white"
+                                    onChange={(e) =>
+                                      exercise.isNew
+                                        ? handleNewExerciseSetChange(
+                                            exercise.id,
+                                            index,
+                                            "rpe",
+                                            e.target.value
+                                          )
+                                        : handleEditInput(
+                                            set,
+                                            "rpe",
+                                            e.target.value
+                                          )
+                                    }
+                                  />
+                                </div>
+                              ) : isAddingSet.bool &&
+                                isAddingSet.exerciseId === exercise.id &&
+                                set.isNew ? (
+                                <div className="flex justify-center">
+                                  <Input
+                                    type="number"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    onKeyDown={(e) => {
+                                      if (
+                                        ["e", "E", "+", "-"].includes(e.key)
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onFocus={() =>
+                                      setActiveSlider({
+                                        type: "rpe",
+                                        exerciseId: exercise.id,
+                                        setIndex: index,
+                                      })
+                                    }
+                                    min={1}
+                                    max={10}
+                                    value={tempValues.rpe ?? ""}
+                                    placeholder="RPE"
+                                    className="text-center max-w-30 bg-white"
+                                    onChange={(e) =>
+                                      setTempValues((prev) => ({
+                                        ...prev,
+                                        rpe: Number(e.target.value),
+                                      }))
+                                    }
+                                  />
+                                </div>
+                              ) : (
+                                <div className="text-md font-bold text-gray-800">
+                                  {set.rpe ?? 5}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {activeSlider &&
+                            activeSlider.exerciseId === exercise.id &&
+                            activeSlider.setIndex === index && (
+                              <div className="mt-3">
+                                <DynamicSlider
+                                  type={activeSlider.type}
+                                  value={
+                                    activeSlider.type === "weight"
+                                      ? set.weight ?? 0
+                                      : activeSlider.type === "reps"
+                                      ? set.reps ?? 0
+                                      : set.rpe ?? 5
+                                  }
+                                  onChange={(newValue) => {
+                                    if (exercise.isNew) {
+                                      handleNewExerciseSetChange(
+                                        exercise.id,
+                                        index,
+                                        activeSlider.type,
+                                        newValue.toString()
+                                      );
+                                    } else if (
+                                      isEditing.bool &&
+                                      isEditing.exercise.id === exercise.id
+                                    ) {
+                                      handleEditInput(
+                                        set,
+                                        activeSlider.type,
+                                        newValue.toString()
+                                      );
+                                    } else if (
+                                      isAddingSet.bool &&
+                                      isAddingSet.exerciseId === exercise.id &&
+                                      set.isNew
+                                    ) {
+                                      setTempValues((prev) => ({
+                                        ...prev,
+                                        [activeSlider.type]: newValue,
+                                      }));
+                                      setExercises((prev) =>
+                                        (prev ?? []).map((ex) => {
+                                          if (ex.id === exercise.id) {
+                                            return {
+                                              ...ex,
+                                              sets: ex.sets.map(
+                                                (s: WorkoutSet, i: number) =>
+                                                  i === index
+                                                    ? {
+                                                        ...s,
+                                                        [activeSlider.type]:
+                                                          newValue,
+                                                      }
+                                                    : s
+                                              ),
+                                            };
+                                          }
+                                          return ex;
+                                        })
+                                      );
+                                    }
                                   }}
                                 />
                               </div>
@@ -825,13 +968,6 @@ export default function DailyExerciseCard() {
                           <div className="col-span-3 flex items-center justify-center w-full">
                             {exercise.isNew && index + 1 === array.length && (
                               <div className="flex flex-col justify-center items-center w-full mt-2">
-                                <NumberSlider
-                                  rpe={set.rpe}
-                                  onRpeChange={(newRpe) =>
-                                    handleRpeChange(newRpe, exercise, index)
-                                  }
-                                />
-                                {/* <Separator className="w-full mb-2" /> */}
                                 <div className="flex justify-center items-center w-full gap-3 pb-3">
                                   <Button
                                     onClick={() => cancelLastSet(exercise)}
@@ -862,8 +998,9 @@ export default function DailyExerciseCard() {
                     )}
                   </CardContent>
                 </Card>
-              ))}{" "}
+              ))}
           </div>
+
           {!hasStoredWorkout && (
             <div className="border-t border-gray-200 mb-5" />
           )}

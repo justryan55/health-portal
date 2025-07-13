@@ -76,7 +76,6 @@
   --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
   --sidebar-border: oklch(0.923 0.003 48.717);
   --sidebar-ring: oklch(0.709 0.01 56.259);
-
 }
 
 .dark {
@@ -120,4 +119,17 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.workout-day::after {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  content: "";
+  display: block;
+  width: 4px;
+  height: 4px;
+  /* margin: 2px auto 0; */
+  border-radius: 50%;
+  background-color: #22c55e;
 }
