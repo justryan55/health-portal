@@ -355,8 +355,6 @@ function getPayloadConfigFromPayload(
     : config[key as keyof typeof config];
 }
 
-import "./chart.css";
-
 export {
   ChartContainer,
   ChartTooltip,
