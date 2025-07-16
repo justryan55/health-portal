@@ -2,7 +2,6 @@
 
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -20,7 +19,7 @@ import { toast } from "sonner";
 
 export function OnboardingModal() {
   const { user } = useUser();
-  const { profile, setProfile } = useProfile();
+  const { profile } = useProfile();
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -74,8 +73,8 @@ export function OnboardingModal() {
               </h2>
 
               <p className="text-sm text-muted-foreground">
-                We're excited to have you here. Let's take a moment to set up
-                your profile so you can get the most out of the portal.
+                We&apos;re excited to have you here. Let&apos;s take a moment to
+                set up your profile so you can get the most out of the portal.
               </p>
             </div>
           )}

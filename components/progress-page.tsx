@@ -1,7 +1,6 @@
 import { ChartLineInteractive } from "@/components/chart-line-interactive";
 import Header from "@/components/header";
 import { useState } from "react";
-import { ProgressSnapshotCards } from "./progress-snapshop-cards";
 
 export default function Progress() {
   const [selectedExercise, setSelectedExercise] =

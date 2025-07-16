@@ -58,21 +58,33 @@ const chartConfig = {
 type ChartLineInteractiveProps = {
   selectedExercise: string;
   selectedPeriod: number;
-  setSelectedPeriod: () => void;
+  setSelectedPeriod: React.Dispatch<React.SetStateAction<number>>;
 };
 
-type WorkoutSet = {
-  weight: number;
+// type WorkoutSet = {
+//   weight: number;
+//   reps: number;
+//   rpe: number;
+//   completed_at: string;
+// };
+
+// type WorkoutEntry = {
+//   date: string;
+//   volume: number;
+//   reps: number;
+//   weight: number;
+//   id: string;
+//   name: string;
+//   date_completed?: string;
+//   sets: WorkoutSet[];
+// };
+
+type ChartDataEntry = {
+  date: string;
+  sets: number; // just count of sets
   reps: number;
-  rpe: number;
-  completed_at: string;
-};
-
-type WorkoutEntry = {
-  id: string;
-  name: string;
-  date_completed?: string;
-  sets: WorkoutSet[];
+  weight: number;
+  volume: number;
 };
 
 export function ChartLineInteractive({
@@ -82,7 +94,7 @@ export function ChartLineInteractive({
   const [activeMetric, setActiveMetric] =
     React.useState<keyof typeof chartConfig>("volume");
 
-  const [workoutData, setWorkoutData] = React.useState<WorkoutEntry[]>([]);
+  const [workoutData, setWorkoutData] = React.useState<ChartDataEntry[]>([]);
 
   const session = useSupabaseSession();
 

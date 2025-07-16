@@ -1,10 +1,24 @@
 import { supabase } from "./supabase/supabase-client";
 
-export const updateUserProfile = async (profile) => {
+interface Profile {
+  fullName: string;
+  age: number | null;
+  height: {
+    cm: number | null;
+    ft: number | null;
+    in: number | null;
+  };
+  weight: number | null;
+  gender: string;
+  goals: string[];
+  units: string;
+}
+
+export const updateUserProfile = async (profile: Profile) => {
   const dbProfile = {
     name: profile.fullName,
-    age: profile.age ? parseInt(profile.age) : null,
-    weight: profile.weight ? parseFloat(profile.weight) : null,
+    age: profile.age ? profile.age : null,
+    weight: profile.weight ? profile.weight : null,
     gender: profile.gender || null,
     units: profile.units || "metric",
     goals: profile.goals || [],
@@ -12,19 +26,19 @@ export const updateUserProfile = async (profile) => {
     height_cm:
       profile.units === "metric"
         ? profile.height?.cm
-          ? parseFloat(profile.height.cm)
+          ? profile.height.cm
           : null
         : null,
     height_ft:
       profile.units === "imperial"
         ? profile.height?.ft
-          ? parseFloat(profile.height.ft)
+          ? profile.height.ft
           : null
         : null,
     height_in:
       profile.units === "imperial"
         ? profile.height?.in
-          ? parseFloat(profile.height.in)
+          ? profile.height.in
           : null
         : null,
   };
@@ -38,7 +52,7 @@ export const updateUserProfile = async (profile) => {
       throw new Error("No authenticated user");
     }
 
-    const { data, error } = await supabase.from("profiles").upsert([
+    const { error } = await supabase.from("profiles").upsert([
       {
         id: user.id,
         ...dbProfile,
@@ -91,7 +105,9 @@ export const updateOnboardingStatus = async () => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data, error } = await supabase
+  if (!user) return;
+
+  const { error } = await supabase
     .from("profiles")
     .update({ onboarding_complete: true })
     .eq("id", user.id);

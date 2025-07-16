@@ -5,7 +5,7 @@ import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { toggleSelectedPlan, uploadWorkoutPlanToDB } from "@/lib/workouts";
 import { useWorkoutContext } from "@/providers/workout-provider";
-import { Plus, ChevronRight, ChevronLeft, Save, X, Book } from "lucide-react";
+import { Plus, ChevronRight, ChevronLeft, Save, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { nanoid } from "nanoid";
 import Image from "next/image";
@@ -42,6 +42,8 @@ interface WorkoutPlanProps {
   }) => void;
   day: number;
   setDay: (value: number) => void;
+  isBuilding: boolean;
+  setIsBuilding: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function WorkoutPlan({
@@ -59,7 +61,6 @@ export default function WorkoutPlan({
   setDay,
   isBuilding,
   setIsBuilding,
-  originalPlan,
 }: WorkoutPlanProps) {
   const { setIsCreatingWorkout } = useWorkoutContext();
   // const [isBuilding, setIsBuilding] = useState(false);

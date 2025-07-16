@@ -1,9 +1,7 @@
 "use client";
 
-import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { OnboardingModal } from "@/components/onboarding-modal";
 import { ProgressSnapshotCards } from "@/components/progress-snapshop-cards";
-import { SectionCards } from "@/components/section-cards";
 import { fetchUserProfile } from "@/lib/profile";
 import { useEffect, useState } from "react";
 

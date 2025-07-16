@@ -7,11 +7,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
+import { IconTrendingUp } from "@tabler/icons-react";
 
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState } from "react";
-import { fetchPersonalRecords } from "@/lib/workouts";
+
 
 export default function PersonalRecordSnapshot() {
   // const getPersonalRecords = async () => {

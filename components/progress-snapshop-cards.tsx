@@ -1,17 +1,6 @@
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardAction,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import MonthlySessionsSnapshot from "./monthly-sessions-snapshot";
 import WeeklyVolumeSnapshot from "./weekly-volume-snapshot";
-import PersonalRecordSnapshot from "./personal-record-snapshot";
 import AverageRPESnapshot from "./average-rpe-snapshot";
 import GoalsSnapshot from "./goals-snapshot";
 

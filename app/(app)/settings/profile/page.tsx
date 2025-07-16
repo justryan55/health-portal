@@ -1,12 +1,10 @@
 "use client";
 
-import ProfileCard from "@/components/profile-card";
 import ProfileSettings from "@/components/profile-settings";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -15,7 +13,7 @@ import { useProfile } from "@/providers/profile-provider";
 import { toast } from "sonner";
 
 export default function Page() {
-  const { profile, setProfile } = useProfile();
+  const { profile } = useProfile();
 
   const saveChanges = async () => {
     const res = await updateUserProfile(profile);

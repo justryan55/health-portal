@@ -11,18 +11,17 @@ import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
-import { fetchPersonalRecords, fetchWeeklyRPE } from "@/lib/workouts";
+import { fetchWeeklyRPE } from "@/lib/workouts";
 
 export default function AverageRPESnapshot() {
   const [averageWeeklyRPE, setAverageWeeklyRPE] = useState(0);
-  const [percentageChange, setPercentageChange] = useState();
+  const [percentageChange, setPercentageChange] = useState(0);
 
   const getWeeklyRPE = async () => {
     try {
       const res = await fetchWeeklyRPE();
 
       if (!res?.success) {
-        console.log("Error", res?.message);
         return;
       }
 

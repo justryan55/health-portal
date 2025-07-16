@@ -14,8 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
-  headerName: string;
-  headerDescription: string;
   dropdown: boolean;
   dropdownTitle: string;
   selectedExercise: string;
@@ -34,10 +32,8 @@ const timePeriods = [
 
 export default function Header({
   selectedPeriod,
-  headerDescription = `Metrics over the last ${selectedPeriod} days`,
   dropdown = false,
   selectedExercise,
-  headerName = `${selectedExercise}`,
   setSelectedExercise,
   setSelectedPeriod,
 }: HeaderProps) {
@@ -73,7 +69,7 @@ export default function Header({
     };
 
     fetchExerciseBtns();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   return (
@@ -83,9 +79,11 @@ export default function Header({
       } justify-between items-center p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg mb-6`}
     >
       <div>
-        <h1 className="text-2xl font-bold text-white">{headerName}</h1>
+        <h1 className="text-2xl font-bold text-white">{selectedExercise}</h1>
 
-        <p className="text-gray-300 font-medium">{headerDescription}</p>
+        <p className="text-gray-300 font-medium">
+          Metrics over the last {selectedPeriod} days
+        </p>
       </div>
       <div className="flex flex-row gap-2">
         <select

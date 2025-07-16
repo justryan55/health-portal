@@ -9,6 +9,19 @@ import { Label } from "@/components/ui/label";
 import { useUser } from "@/providers/user-provider";
 import { useEffect, useState } from "react";
 import { useProfile } from "@/providers/profile-provider";
+interface Profile {
+  fullName: string;
+  age: number | null;
+  height: {
+    cm: number | null;
+    ft: number | null;
+    in: number | null;
+  };
+  weight: number | null;
+  gender: string;
+  goals: string[];
+  units: string;
+}
 
 export default function ProfileSettings() {
   const { user } = useUser();
@@ -39,7 +52,7 @@ export default function ProfileSettings() {
   ];
 
   useEffect(() => {
-    setProfile((prev) => ({
+    setProfile((prev: Profile) => ({
       ...prev,
       fullName: user.fullName || "",
     }));
@@ -62,7 +75,7 @@ export default function ProfileSettings() {
               onChange={(e) => {
                 const updatedName =
                   e.target.value === "" ? "" : String(e.target.value);
-                setProfile((prev) => ({
+                setProfile((prev: Profile) => ({
                   ...prev,
                   fullName: updatedName,
                 }));
@@ -83,8 +96,8 @@ export default function ProfileSettings() {
                 placeholder="Enter your age"
                 onChange={(e) => {
                   const age =
-                    e.target.value === "" ? "" : Number(e.target.value);
-                  setProfile((prev) => ({
+                    e.target.value === "" ? null : Number(e.target.value);
+                  setProfile((prev: Profile) => ({
                     ...prev,
                     age: age,
                   }));
@@ -98,12 +111,12 @@ export default function ProfileSettings() {
                 <Input
                   type="number"
                   id="profile-height-cm"
-                  value={profile.height.cm}
+                  value={profile.height.cm ?? ""}
                   placeholder="Enter your height in cm"
                   onChange={(e) => {
                     const height =
-                      e.target.value === "" ? "" : Number(e.target.value);
-                    setProfile((prev) => ({
+                      e.target.value === "" ? null : Number(e.target.value);
+                    setProfile((prev: Profile) => ({
                       ...prev,
                       height: {
                         ...prev.height,
@@ -120,12 +133,12 @@ export default function ProfileSettings() {
                   <Input
                     type="number"
                     id="profile-height-ft"
-                    value={profile.height.ft}
+                    value={profile.height.ft ?? ""}
                     placeholder="ft"
                     onChange={(e) => {
                       const ft =
-                        e.target.value === "" ? "" : Number(e.target.value);
-                      setProfile((prev) => ({
+                        e.target.value === "" ? null : Number(e.target.value);
+                      setProfile((prev: Profile) => ({
                         ...prev,
                         height: {
                           ...prev.height,
@@ -137,12 +150,12 @@ export default function ProfileSettings() {
                   <Input
                     type="number"
                     id="profile-height-in"
-                    value={profile.height.in}
+                    value={profile.height.in ?? ""}
                     placeholder="in"
                     onChange={(e) => {
                       const inch =
-                        e.target.value === "" ? "" : Number(e.target.value);
-                      setProfile((prev) => ({
+                        e.target.value === "" ? null : Number(e.target.value);
+                      setProfile((prev: Profile) => ({
                         ...prev,
                         height: {
                           ...prev.height,
@@ -166,8 +179,8 @@ export default function ProfileSettings() {
                 placeholder="Enter your weight"
                 onChange={(e) => {
                   const weight =
-                    e.target.value === "" ? "" : Number(e.target.value);
-                  setProfile((prev) => ({
+                    e.target.value === "" ? null : Number(e.target.value);
+                  setProfile((prev: Profile) => ({
                     ...prev,
                     weight: weight,
                   }));
@@ -181,7 +194,7 @@ export default function ProfileSettings() {
             className="grid grid-cols-1 sm:grid-cols-2 gap-2"
             value={profile.gender || "unspecified"}
             onValueChange={(value) =>
-              setProfile((prev) => ({
+              setProfile((prev: Profile) => ({
                 ...prev,
                 gender: value,
               }))
@@ -221,8 +234,8 @@ export default function ProfileSettings() {
                         id={goal.id}
                         checked={profile.goals.includes(goal.value)}
                         onCheckedChange={(checked) => {
-                          setProfile((prev) => {
-                            let updatedGoals = checked
+                          setProfile((prev: Profile) => {
+                            const updatedGoals = checked
                               ? [...prev.goals, goal.value]
                               : prev.goals.filter(
                                   (g) => g !== goal.value && g !== customGoal
@@ -250,7 +263,7 @@ export default function ProfileSettings() {
                         onChange={(e) => {
                           const value = e.target.value;
                           setCustomGoal(value);
-                          setProfile((prev) => {
+                          setProfile((prev: Profile) => {
                             const cleanedGoals = prev.goals.filter(
                               (g) =>
                                 g !== customGoal && g !== value && g !== "other"
@@ -277,7 +290,7 @@ export default function ProfileSettings() {
               id="profile-units"
               value={profile.units || "metric"}
               onValueChange={(value) => {
-                setProfile((prev) => ({
+                setProfile((prev: Profile) => ({
                   ...prev,
                   units: value,
                 }));

@@ -5,13 +5,13 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface Profile {
   fullName: string;
-  age: string;
+  age: number | null;
   height: {
-    cm: string;
-    ft: string;
-    in: string;
+    cm: number | null;
+    ft: number | null;
+    in: number | null;
   };
-  weight: string;
+  weight: number | null;
   gender: string;
   goals: string[];
   units: string;
@@ -33,21 +33,21 @@ export default function ProfileProvider({
   children,
   initialProfile = {},
 }: ProfileProviderProps) {
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<Profile>({
     fullName: "",
-    age: "",
+    age: null,
     height: {
-      cm: "",
-      ft: "",
-      in: "",
+      cm: null,
+      ft: null,
+      in: null,
     },
-    weight: "",
+    weight: null,
     gender: "",
     goals: [],
     units: "metric",
     ...initialProfile,
   });
-
+  
   const fetchProfile = async () => {
     const res = await fetchUserProfile();
 
@@ -83,5 +83,11 @@ export default function ProfileProvider({
 }
 
 export function useProfile() {
-  return useContext(ProfileContext);
+  const context = useContext(ProfileContext);
+
+  if (!context) {
+    throw new Error("useProfile must be used within a ProfileProvider.");
+  }
+
+  return context;
 }
