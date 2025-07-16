@@ -5,8 +5,8 @@ import { nanoid } from "nanoid";
 import { useSupabaseSession } from "@/providers/supabase-provider";
 import {
   addSet,
+  deleteWorkout,
   fetchDailyWorkout,
-  fetchExercisesFromTemplate,
   fetchWeeklyPlan,
   updateSet,
   uploadExerciseToDB,
@@ -20,6 +20,7 @@ import spinnerBlack from "@/public/spinner-black.svg";
 import Image from "next/image";
 import { ExerciseAutocompleteInput } from "./exercise-autocomplete-input";
 import { DynamicSlider } from "../components/dynamic-slider";
+import TimerComponent from "./timer-component";
 
 interface WorkoutSet {
   isNew?: boolean;
@@ -30,7 +31,21 @@ interface WorkoutSet {
   rpe: number;
 }
 
-export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
+interface ActiveSlider {
+  type: "weight" | "reps" | "rpe";
+  exerciseId: string;
+  setIndex: number;
+}
+
+interface DailyExerciseCardProps {
+  activeSlider: ActiveSlider | null;
+  setActiveSlider: React.Dispatch<React.SetStateAction<ActiveSlider | null>>;
+}
+
+export default function DailyExerciseCard({
+  activeSlider,
+  setActiveSlider,
+}: DailyExerciseCardProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [exercises, setExercises] = useState<any[] | null>(null);
 
@@ -61,6 +76,7 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
   const localTimeMs = date.getTime() - date.getTimezoneOffset() * 60 * 1000;
   const localDateISO = new Date(localTimeMs).toISOString();
   const [isLoading, setIsLoading] = useState(false);
+  const [, setTimerIsShowing] = useState(false);
   // const [progress, setProgress] = useState([5]);
 
   const getExerciseInitials = (name: string) => {
@@ -97,10 +113,11 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
 
   const handleEditInput = async (
     set: WorkoutSet,
-    field: "weight" | "reps",
-    value: string
+    field: "weight" | "reps" | "rpe",
+    value: string | number
   ) => {
-    const numeric = value === "" ? undefined : Number(value);
+    const numeric =
+      value === "" ? undefined : typeof value === "number" ? value : Number(value);
 
     if (numeric === undefined || isNaN(numeric)) {
       return;
@@ -216,11 +233,29 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
     setIsCreatingWorkout(true);
   };
 
+  useEffect(() => {
+    if (hasStoredWorkout && exercises && exercises.length === 0) {
+      const cleanupWorkout = async () => {
+        if (!session) return;
+
+        const result = await deleteWorkout(localDateISO);
+
+        if (result?.success) {
+          setHasStoredWorkout(false);
+          setIsCreatingWorkout(false);
+        }
+      };
+
+      cleanupWorkout();
+    }
+  }, [exercises, hasStoredWorkout, session, localDateISO]);
+
   const quickAddExercises = async () => {
+    if (!session) return;
     const res = await fetchWeeklyPlan(session);
     const weeklyExercises = res?.[0].days;
     const dayIndex = (date.getDay() + 6) % 7;
-    const dailyExercises = weeklyExercises[dayIndex];
+    const dailyExercises = weeklyExercises?.[dayIndex];
 
     if (!dailyExercises || dailyExercises.length === 0) return;
 
@@ -239,6 +274,9 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
   };
 
   const addSetToNewExercise = (exerciseId: string) => {
+    setActiveSlider(null);
+
+    setTimerIsShowing(false);
     setExercises((prev) =>
       (prev ?? []).map((exercise) => {
         if (exercise.id === exerciseId) {
@@ -353,6 +391,7 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
   };
 
   const cancelLastSet = (exercise: { id: string; sets: WorkoutSet[] }) => {
+    setTimerIsShowing(false);
     setExercises((prev) =>
       (prev ?? [])
         .filter((ex) => {
@@ -394,25 +433,25 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
     setActiveSlider(null);
   };
 
-  const handleRpeChange = (
-    newRpe: number,
-    exercise: { id: string },
-    index: number
-  ) => {
-    setExercises((prev) =>
-      (prev ?? []).map((ex) => {
-        if (ex.id === exercise.id) {
-          return {
-            ...ex,
-            sets: ex.sets.map((s: WorkoutSet, i: number) =>
-              i === index ? { ...s, rpe: newRpe } : s
-            ),
-          };
-        }
-        return ex;
-      })
-    );
-  };
+  // const handleRpeChange = (
+  //   newRpe: number,
+  //   exercise: { id: string },
+  //   index: number
+  // ) => {
+  //   setExercises((prev) =>
+  //     (prev ?? []).map((ex) => {
+  //       if (ex.id === exercise.id) {
+  //         return {
+  //           ...ex,
+  //           sets: ex.sets.map((s: WorkoutSet, i: number) =>
+  //             i === index ? { ...s, rpe: newRpe } : s
+  //           ),
+  //         };
+  //       }
+  //       return ex;
+  //     })
+  //   );
+  // };
 
   if (isLoading) {
     return (
@@ -427,9 +466,6 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
       {!isCreatingWorkout && !hasStoredWorkout ? (
         <div className="flex flex-col justify-center items-center min-h-72 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 ">
           <div className="text-center space-y-4">
-            {/* <div className="w-16 h-16 mx-auto bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-2xl">💪</span>
-            </div> */}
             <p className="text-gray-600 font-medium">
               No exercises completed on this date.
             </p>
@@ -451,35 +487,42 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
             isMobile ? "flex-col gap-2 text-center" : "flex-row"
           } justify-between items-center p-6 bg-gradient-to-r from-black to-gray-800 rounded-2xl text-white shadow-lg`}
         >
-          <div>
-            <h1 className="text-2xl font-bold text-white">
-              Today&apos;s Workout
-            </h1>
-            <p className="text-gray-300 font-medium">
-              {date.toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
+          <div className="flex flex-row">
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold text-white">
+                Today&apos;s Workout
+              </h1>
+              <p className="text-gray-300 font-medium">
+                {date.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            </div>
+            {/* {isMobile && (
+              <div className="flex justify-center items-center pl-4">
+                <TimerComponent />
+              </div>
+            )} */}
           </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => addExercise()}
-              className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-            >
-              <Plus className="w-4 h-4 inline" />
-              {/* {!isMobile && <>Add Exercise</>} */}
-              Add Exercise
-            </Button>
+          <div className="grid grid-cols-2 gap-2 md:flex md:gap-2">
+            <TimerComponent />
+
             <Button
               onClick={() => quickAddExercises()}
-              className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+              className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors w-full md:w-auto justify-self-center md:col-auto"
             >
               <FilePlus2 className="w-4 h-4 inline" />
-              {/* {!isMobile && <>Add Exercise</>} */}
               Quick Add
+            </Button>
+            <Button
+              onClick={() => addExercise()}
+              className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors w-full md:w-auto col-span-2 "
+            >
+              <Plus className="w-4 h-4 inline" />
+              Add Exercise
             </Button>
           </div>
         </div>
@@ -529,9 +572,12 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
                           setIsAddingSet={setIsAddingSet}
                           isAddingSet={isAddingSet}
                           onDeleteExercise={(id) => {
-                            setExercises((prev) =>
-                              (prev ?? []).filter((ex) => ex.id !== id)
-                            );
+                            setExercises((prev) => {
+                              const updatedExercises = (prev ?? []).filter(
+                                (ex) => ex.id !== id
+                              );
+                              return updatedExercises;
+                            });
                           }}
                         />
                       ) : (isAddingSet.bool &&
@@ -841,20 +887,22 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
                                     value={set.rpe ?? ""}
                                     placeholder="RPE"
                                     className="text-center max-w-30 bg-white"
-                                    onChange={(e) =>
-                                      exercise.isNew
-                                        ? handleNewExerciseSetChange(
-                                            exercise.id,
-                                            index,
-                                            "rpe",
-                                            e.target.value
-                                          )
-                                        : handleEditInput(
-                                            set,
-                                            "rpe",
-                                            e.target.value
-                                          )
-                                    }
+                                    onChange={(e) => {
+                                      const value = Math.max(
+                                        1,
+                                        Math.min(10, Number(e.target.value))
+                                      );
+                                      if (exercise.isNew) {
+                                        handleNewExerciseSetChange(
+                                          exercise.id,
+                                          index,
+                                          "rpe",
+                                          value.toString()
+                                        );
+                                      } else {
+                                        handleEditInput(set, "rpe", value);
+                                      }
+                                    }}
                                   />
                                 </div>
                               ) : isAddingSet.bool &&
@@ -884,12 +932,16 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
                                     value={tempValues.rpe ?? ""}
                                     placeholder="RPE"
                                     className="text-center max-w-30 bg-white"
-                                    onChange={(e) =>
+                                    onChange={(e) => {
+                                      const value = Math.max(
+                                        1,
+                                        Math.min(10, Number(e.target.value))
+                                      );
                                       setTempValues((prev) => ({
                                         ...prev,
-                                        rpe: Number(e.target.value),
-                                      }))
-                                    }
+                                        rpe: value,
+                                      }));
+                                    }}
                                   />
                                 </div>
                               ) : (
@@ -899,6 +951,51 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
                               )}
                             </div>
                           </div>
+
+                          {/* {exercise.isNew && index + 1 === array.length && (
+                            <div className="mt-2 group">
+                              <div className="relative flex items-center justify-center py-2">
+                                <div className="flex-1 h-px bg-gray-300 group-hover:bg-gray-400 transition-colors duration-200" />
+
+                                <div className="absolute transition-opacity duration-200 bg-white px-2">
+                                  <Button
+                                    onClick={() => {
+                                      setTimerIsShowing((prev) => !prev);
+                                      setActiveSlider(null);
+                                    }}
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+                                  >
+                                    <Clock />
+                                    Add Rest
+                                  </Button>
+                                </div>
+                              </div>
+
+                              <div
+                                className={`transition-all duration-500 ease-in-out overflow-hidden ${
+                                  timerIsShowing
+                                    ? "max-h-[500px] opacity-100"
+                                    : "max-h-0 opacity-0"
+                                }`}
+                              >
+                                <div className="mt-4">
+                                  <TimerComponent
+                                    duration={duration}
+                                    setDuration={setDuration}
+                                    timeLeft={timeLeft}
+                                    setTimeLeft={setTimeLeft}
+                                    timerIsActive={timerIsActive}
+                                    setTimerIsActive={setTimerIsActive}
+                                    isPaused={isPaused}
+                                    setIsPaused={setIsPaused}
+                                    timerRef={timerRef}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )} */}
 
                           {activeSlider &&
                             activeSlider.exerciseId === exercise.id &&
@@ -913,7 +1010,7 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
                                       ? set.reps ?? 0
                                       : set.rpe ?? 5
                                   }
-                                  onChange={(newValue) => {
+                                  onChange={(newValue: number) => {
                                     if (exercise.isNew) {
                                       handleNewExerciseSetChange(
                                         exercise.id,
@@ -964,7 +1061,6 @@ export default function DailyExerciseCard({ activeSlider, setActiveSlider }) {
                                 />
                               </div>
                             )}
-
                           <div className="col-span-3 flex items-center justify-center w-full">
                             {exercise.isNew && index + 1 === array.length && (
                               <div className="flex flex-col justify-center items-center w-full mt-2">
