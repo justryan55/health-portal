@@ -21,6 +21,7 @@ import Image from "next/image";
 import { ExerciseAutocompleteInput } from "./exercise-autocomplete-input";
 import { DynamicSlider } from "../components/dynamic-slider";
 import TimerComponent from "./timer-component";
+import { toast } from "sonner";
 
 interface WorkoutSet {
   isNew?: boolean;
@@ -101,6 +102,9 @@ export default function DailyExerciseCard({
 
       if (!data || data.length === 0) {
         setIsLoading(false);
+        if (!data) {
+          toast.error("Unable to fetch daily workout.");
+        }
         return setHasStoredWorkout(false);
       }
       setIsLoading(false);
@@ -117,7 +121,11 @@ export default function DailyExerciseCard({
     value: string | number
   ) => {
     const numeric =
-      value === "" ? undefined : typeof value === "number" ? value : Number(value);
+      value === ""
+        ? undefined
+        : typeof value === "number"
+        ? value
+        : Number(value);
 
     if (numeric === undefined || isNaN(numeric)) {
       return;

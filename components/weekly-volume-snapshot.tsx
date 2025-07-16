@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { fetchWeeklyVolume } from "@/lib/workouts";
 import { useProfile } from "@/providers/profile-provider";
+import { toast } from "sonner";
 
 export default function WeeklyVolumeSnapshot() {
   const [weeklyVolume, setWeeklyVolume] = useState(0);
@@ -26,7 +27,7 @@ export default function WeeklyVolumeSnapshot() {
       const res = await fetchWeeklyVolume();
 
       if (!res?.success) {
-        console.log("Error fetching weekly volume");
+        toast.error("Error fetching weekly volume.");
         return;
       }
 
@@ -52,6 +53,7 @@ export default function WeeklyVolumeSnapshot() {
   useEffect(() => {
     getWeeklyVolume();
   }, []);
+  
   return (
     <Card className="@container/card">
       <CardHeader>

@@ -47,6 +47,7 @@ export function OnboardingModal() {
     const res = await updateUserProfile(profile);
 
     if (!res.success) {
+      toast.error("Unable to update profile.");
       return;
     }
 

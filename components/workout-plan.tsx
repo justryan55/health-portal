@@ -12,6 +12,7 @@ import Image from "next/image";
 import spinnerBlack from "@/public/spinner-black.svg";
 import { getEmptyWorkoutPlan } from "./get-empty-workout-plan";
 import { ExerciseAutocompleteInput } from "./exercise-autocomplete-input";
+import { toast } from "sonner";
 
 interface Exercise {
   id: string;
@@ -187,6 +188,11 @@ export default function WorkoutPlan({
     };
 
     const { data, error } = await uploadWorkoutPlanToDB(sanitizedWorkoutPlan);
+
+    if (error) {
+      toast.error("Error saving plan.");
+      return;
+    }
 
     if (!error && data) {
       setHasStoredWorkout(true);

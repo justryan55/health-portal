@@ -19,6 +19,7 @@ export default function Page() {
     const res = await updateUserProfile(profile);
 
     if (!res.success) {
+      toast.error("Failed to update profile.");
       return;
     }
 

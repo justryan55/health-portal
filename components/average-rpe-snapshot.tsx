@@ -12,6 +12,7 @@ import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { fetchWeeklyRPE } from "@/lib/workouts";
+import { toast } from "sonner";
 
 export default function AverageRPESnapshot() {
   const [averageWeeklyRPE, setAverageWeeklyRPE] = useState(0);
@@ -24,6 +25,8 @@ export default function AverageRPESnapshot() {
       const res = await fetchWeeklyRPE();
 
       if (!res?.success) {
+        toast.error("Unable to fetch weekly RPE average.");
+
         return;
       }
 

@@ -9,6 +9,7 @@ import { useWorkoutContext } from "@/providers/workout-provider";
 import DailyExerciseCard from "@/components/daily-exercise-card";
 
 import StyledWorkoutPlan from "@/components/styled-workout-plan";
+import { toast } from "sonner";
 
 interface Exercise {
   id: string;
@@ -69,6 +70,9 @@ export default function Page() {
     if (!data || data.length === 0) {
       setIsLoading(false);
       setHasStoredWorkout(false);
+      if (!data) {
+        toast.error("Failed to fetch workout plan.");
+      }
       return;
     }
 

@@ -27,6 +27,7 @@ import spinnerWhite from "@/public/spinner-white.svg";
 import spinnerBlack from "@/public/spinner-black.svg";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/supabase-client";
+import { toast } from "sonner";
 
 export function LoginForm({
   className,
@@ -138,6 +139,7 @@ export function LoginForm({
       }
       setIsLoading(false);
     } catch (err) {
+      toast.error("There has been an error.");
       console.log(err);
     }
   }

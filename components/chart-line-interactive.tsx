@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/chart";
 import { fetchExerciseStats } from "@/lib/workouts";
 import { useSupabaseSession } from "@/providers/supabase-provider";
+import { toast } from "sonner";
 
 export const description =
   "Workout Progress Chart (Volume, Reps, Sets, Weight)";
@@ -154,6 +155,12 @@ export function ChartLineInteractive({
       if (!session || !session.user) return;
 
       const res = await fetchExerciseStats(session?.user.id, selectedExercise);
+
+      if (!res) {
+        toast.error("Unable to fetch stats.");
+        return;
+      }
+
       const rawData = res?.data ?? [];
 
       const chartData = rawData.map((exercise) => {

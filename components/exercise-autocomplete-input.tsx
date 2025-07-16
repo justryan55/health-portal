@@ -29,7 +29,9 @@ export const ExerciseAutocompleteInput = ({
       if (query.trim().length === 0) return setSuggestions([]);
       try {
         const res = await exerciseSuggestions(query);
-        console.log(res);
+
+        if (!res) return;
+
         setSuggestions(res?.data ?? []);
       } catch (error) {
         setSuggestions([]);

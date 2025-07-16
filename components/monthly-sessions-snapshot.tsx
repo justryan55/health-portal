@@ -12,6 +12,7 @@ import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { fetchSessionsThisMonth } from "@/lib/workouts";
+import { toast } from "sonner";
 
 type SessionType = {
   id: string;
@@ -31,6 +32,7 @@ export default function MonthlySessionsSnapshot() {
       const res = await fetchSessionsThisMonth();
 
       if (!res?.success) {
+        toast.error("Unable to fetch monthly sessions.");
         console.log("Error", res?.message);
         return;
       }
@@ -49,6 +51,7 @@ export default function MonthlySessionsSnapshot() {
 
       setPercentageChange(percentage);
     } catch (err) {
+      toast.error("There has been an error.");
       console.log(err);
     }
   };

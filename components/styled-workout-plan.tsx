@@ -30,6 +30,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface Exercise {
   id: string;
@@ -206,6 +207,7 @@ export default function StyledWorkoutPlan({
         ),
       }));
     } catch (error) {
+      toast.error("Error uploading exercise.");
       console.log(error);
     }
   };
@@ -220,6 +222,7 @@ export default function StyledWorkoutPlan({
 
       setIsEditingPlan(false);
     } catch (error) {
+      toast.error("Error saving exercises.");
       console.log("Error saving exercises:", error);
     }
   };
@@ -271,12 +274,15 @@ export default function StyledWorkoutPlan({
   const handleDeleteClick = async (exercise: Exercise, index: number) => {
     const data = await deleteExerciseFromWorkout(exercise);
 
-    if (data.success) {
-      setExercisesGroupedByDay((prev) => ({
-        ...prev,
-        [currentDayIndex]: prev[currentDayIndex].filter((_, i) => i !== index),
-      }));
+    if (!data.success) {
+      toast.error("Error deleting exercise.");
+      return;
     }
+
+    setExercisesGroupedByDay((prev) => ({
+      ...prev,
+      [currentDayIndex]: prev[currentDayIndex].filter((_, i) => i !== index),
+    }));
   };
 
   const handleCancel = (index: number) => {
@@ -292,43 +298,47 @@ export default function StyledWorkoutPlan({
 
       const data = await deletePlan(workoutId);
 
-      if (data?.success) {
-        const availablePlans = await fetchWeeklyPlan(session);
+      if (!data?.success) {
+        toast.error("Error deleting plan.");
+        return;
+      }
 
-        if (availablePlans && availablePlans.length > 0) {
-          const firstPlan = availablePlans[0];
-          setWorkoutId(firstPlan.id);
-          setWorkoutName(firstPlan.name);
-          setExercisesGroupedByDay(
-            Object.fromEntries(
-              Object.entries(firstPlan.days).map(([day, exercises]) => [
-                Number(day),
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                exercises.map((ex: any) => ({
-                  id: ex.id,
-                  keyId: ex.keyId ?? nanoid(),
-                  exercise_name: ex.exercise_name ?? ex.exercise ?? "",
-                  sets: ex.sets ?? 0,
-                  reps: ex.reps ?? 0,
-                  weight: ex.weight ?? 0,
-                  libraryId: ex.libraryId,
-                  isNew: ex.isNew ?? false,
-                })),
-              ])
-            ) as Record<number, Exercise[]>
-          );
-          setIsEditingPlan(false);
-          setSavedWorkouts(availablePlans);
-        } else {
-          setHasStoredWorkout(false);
-          const emptyPlan = getEmptyWorkoutPlan();
-          setExercisesByDay(emptyPlan.exercises);
-          setWorkoutPlan(emptyPlan);
-          setDay(0);
-          setSavedWorkouts([]);
-        }
+      const availablePlans = await fetchWeeklyPlan(session);
+
+      if (availablePlans && availablePlans.length > 0) {
+        const firstPlan = availablePlans[0];
+        setWorkoutId(firstPlan.id);
+        setWorkoutName(firstPlan.name);
+        setExercisesGroupedByDay(
+          Object.fromEntries(
+            Object.entries(firstPlan.days).map(([day, exercises]) => [
+              Number(day),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              exercises.map((ex: any) => ({
+                id: ex.id,
+                keyId: ex.keyId ?? nanoid(),
+                exercise_name: ex.exercise_name ?? ex.exercise ?? "",
+                sets: ex.sets ?? 0,
+                reps: ex.reps ?? 0,
+                weight: ex.weight ?? 0,
+                libraryId: ex.libraryId,
+                isNew: ex.isNew ?? false,
+              })),
+            ])
+          ) as Record<number, Exercise[]>
+        );
+        setIsEditingPlan(false);
+        setSavedWorkouts(availablePlans);
+      } else {
+        setHasStoredWorkout(false);
+        const emptyPlan = getEmptyWorkoutPlan();
+        setExercisesByDay(emptyPlan.exercises);
+        setWorkoutPlan(emptyPlan);
+        setDay(0);
+        setSavedWorkouts([]);
       }
     } catch (err) {
+      toast.error("Error deleting plan.");
       console.log(err);
     }
   };
@@ -340,11 +350,15 @@ export default function StyledWorkoutPlan({
       const data = await fetchWeeklyPlan(session);
 
       if (!data || data.length === 0) {
+        if (!data) {
+          toast.error("Error fetching available workout plans.");
+        }
         return;
       }
 
       setSavedWorkouts(data);
     } catch (err) {
+      toast.error("Error fetching available workout plans.");
       console.log(err);
     }
   };
@@ -375,6 +389,7 @@ export default function StyledWorkoutPlan({
     const res = await toggleSelectedPlan(e.id);
 
     if (!res?.success) {
+      toast.error("Error changing plans.");
       console.log(res?.message);
     }
   };
@@ -383,7 +398,7 @@ export default function StyledWorkoutPlan({
     if (hasStoredWorkout && !isCreatingWorkout) {
       fetchAvailablePlans();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasStoredWorkout, isCreatingWorkout, workoutId]);
 
   const isSaveDisabled = currentExercises.some((exercise) => {

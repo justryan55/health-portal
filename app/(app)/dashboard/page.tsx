@@ -4,6 +4,7 @@ import { OnboardingModal } from "@/components/onboarding-modal";
 import { ProgressSnapshotCards } from "@/components/progress-snapshop-cards";
 import { fetchUserProfile } from "@/lib/profile";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function Page() {
   const [showOnboardingModal, setShowOnboardingModal] = useState(true);
@@ -12,7 +13,10 @@ export default function Page() {
     const res = await fetchUserProfile();
 
     if (!res.success) {
+      toast.error("Failed to fetch user profile.");
+
       console.log(res.message);
+
       return;
     }
 
