@@ -15,7 +15,9 @@ import { fetchWeeklyRPE } from "@/lib/workouts";
 
 export default function AverageRPESnapshot() {
   const [averageWeeklyRPE, setAverageWeeklyRPE] = useState(0);
-  const [percentageChange, setPercentageChange] = useState(0);
+  const [percentageChange, setPercentageChange] = useState<number | undefined>(
+    undefined
+  );
 
   const getWeeklyRPE = async () => {
     try {
@@ -56,21 +58,34 @@ export default function AverageRPESnapshot() {
         </CardTitle>
         <CardAction>
           <Badge variant="outline" className="flex items-center gap-1">
-            {percentageChange > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
-            {percentageChange}%
+            {percentageChange !== undefined && percentageChange > 0 ? (
+              <IconTrendingUp />
+            ) : (
+              <IconTrendingDown />
+            )}
+            {percentageChange !== undefined
+              ? `${percentageChange.toFixed(1)}%`
+              : "N/A"}
           </Badge>
         </CardAction>
       </CardHeader>
       <CardFooter className="flex-col items-start gap-1.5 text-sm">
         <div className="line-clamp-1 flex gap-2 font-medium">
           Training intensity is trending
-          {percentageChange > 0 ? " upwards" : " downwards"}
-          {percentageChange > 0 ? (
-            <IconTrendingUp className="size-4" />
-          ) : (
-            <IconTrendingDown className="size-4" />
-          )}
+          {percentageChange !== undefined
+            ? percentageChange > 0
+              ? " upwards"
+              : " downwards"
+            : ""}
+          {percentageChange !== undefined ? (
+            percentageChange > 0 ? (
+              <IconTrendingUp className="size-4" />
+            ) : (
+              <IconTrendingDown className="size-4" />
+            )
+          ) : null}
         </div>
+
         <div className="text-muted-foreground">
           Shows average perceived exertion across workouts this week
         </div>

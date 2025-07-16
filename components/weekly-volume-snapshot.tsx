@@ -16,7 +16,9 @@ import { useProfile } from "@/providers/profile-provider";
 
 export default function WeeklyVolumeSnapshot() {
   const [weeklyVolume, setWeeklyVolume] = useState(0);
-  const [percentageChange, setPercentageChange] = useState();
+  const [percentageChange, setPercentageChange] = useState<number | undefined>(
+    undefined
+  );
   const { profile } = useProfile();
 
   const getWeeklyVolume = async () => {
@@ -24,7 +26,7 @@ export default function WeeklyVolumeSnapshot() {
       const res = await fetchWeeklyVolume();
 
       if (!res?.success) {
-        console.log("Error", res?.message);
+        console.log("Error fetching weekly volume");
         return;
       }
 
@@ -59,21 +61,34 @@ export default function WeeklyVolumeSnapshot() {
         </CardTitle>
         <CardAction>
           <Badge variant="outline">
-            {percentageChange > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
-            {percentageChange}%
+            {percentageChange !== undefined && percentageChange > 0 ? (
+              <IconTrendingUp />
+            ) : (
+              <IconTrendingDown />
+            )}
+            {percentageChange !== undefined
+              ? `${percentageChange.toFixed(1)}%`
+              : "N/A"}
           </Badge>
         </CardAction>
       </CardHeader>
       <CardFooter className="flex-col items-start gap-1.5 text-sm">
         <div className="line-clamp-1 flex gap-2 font-medium">
           Workload trending
-          {percentageChange > 0 ? " upwards" : " downwards"}
-          {percentageChange > 0 ? (
-            <IconTrendingUp className="size-4" />
-          ) : (
-            <IconTrendingDown className="size-4" />
-          )}
+          {percentageChange !== undefined
+            ? percentageChange > 0
+              ? " upwards"
+              : " downwards"
+            : ""}
+          {percentageChange !== undefined ? (
+            percentageChange > 0 ? (
+              <IconTrendingUp className="size-4" />
+            ) : (
+              <IconTrendingDown className="size-4" />
+            )
+          ) : null}
         </div>
+
         <div className="text-muted-foreground">Sets × Reps × Weight</div>
       </CardFooter>
     </Card>
