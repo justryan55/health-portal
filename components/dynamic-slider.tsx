@@ -1,6 +1,7 @@
 "use client";
 
 import { useProfile } from "@/providers/profile-provider";
+import { Slider } from "./ui/slider";
 
 export const DynamicSlider = ({ type, value, onChange }) => {
   const { profile } = useProfile();
@@ -45,7 +46,7 @@ export const DynamicSlider = ({ type, value, onChange }) => {
   const config = getSliderConfig();
 
   return (
-    <div className="w-full px-4 py-3 bg-white rounded-lg border border-gray-200">
+    <div className="w-full px-4 py-3 bg-gray-50 rounded-lg border border-gray-100">
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm font-medium text-gray-700">
           {config.label}
@@ -54,22 +55,15 @@ export const DynamicSlider = ({ type, value, onChange }) => {
           {value} {config.unit}
         </span>
       </div>
-      <input
-        type="range"
-        min={config.min}
+      <Slider
         max={config.max}
+        min={config.min}
         step={config.step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-        style={{
-          background: `linear-gradient(to right, #000 0%, #000 ${
-            ((value - config.min) / (config.max - config.min)) * 100
-          }%, #e5e7eb ${
-            ((value - config.min) / (config.max - config.min)) * 100
-          }%, #e5e7eb 100%)`,
-        }}
+        value={[value]}
+        onValueChange={(newValues) => onChange(newValues[0])}
+        className="my-2"
       />
+
       <div className="flex justify-between text-xs text-gray-500 mt-1">
         <span>{config.min}</span>
         <span>{config.max}</span>

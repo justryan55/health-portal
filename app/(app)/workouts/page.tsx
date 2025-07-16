@@ -21,6 +21,12 @@ interface Exercise {
   isNew?: boolean;
 }
 
+interface ActiveSlider {
+  type: "weight" | "reps" | "rpe";
+  exerciseId: string;
+  setIndex: number;
+}
+
 export default function Page() {
   const session = useSupabaseSession();
   const [hasStoredWorkout, setHasStoredWorkout] = useState(false);
@@ -29,12 +35,13 @@ export default function Page() {
     Record<number, Exercise[]>
   >({});
   const [workoutName, setWorkoutName] = useState("");
-  const { isCreatingWorkout } = useWorkoutContext();
+  const { isCreatingWorkout, setIsCreatingWorkout } = useWorkoutContext();
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
   const [, setIsMobile] = useState(false);
   const [isEditingPlan, setIsEditingPlan] = useState(false);
-const [activeSlider, setActiveSlider] = useState(null);
+  // import type { ActiveSlider } from "@/components/daily-exercise-card";
+  const [activeSlider, setActiveSlider] = useState<ActiveSlider | null>(null);
 
   const days = [
     "Monday",
@@ -65,10 +72,15 @@ const [activeSlider, setActiveSlider] = useState(null);
       return;
     }
 
-    setWorkoutId(data[0].id);
-    const dailyExercises = data[0].days;
-    setWorkoutName(data[0].name);
-    setExercisesGroupedByDay(dailyExercises as Record<number, Exercise[]>);
+    const selectedPlan = data.find((plan) => plan.selected_plan);
+
+    const planToUse = selectedPlan || data[0];
+    setWorkoutId(planToUse.id);
+    const dailyExercises = planToUse.days;
+    setWorkoutName(planToUse.name);
+    setExercisesGroupedByDay(
+      dailyExercises as unknown as Record<number, Exercise[]>
+    );
     setHasStoredWorkout(true);
     setIsLoading(false);
     setIsEditingPlan(false);
@@ -135,7 +147,11 @@ const [activeSlider, setActiveSlider] = useState(null);
             className="rounded-md border shadow"
           />
         )} */}
-          <DailyExerciseCard activeSlider={activeSlider} setActiveSlider={setActiveSlider} />
+
+          <DailyExerciseCard
+            activeSlider={activeSlider}
+            setActiveSlider={setActiveSlider}
+          />
         </div>
 
         <StyledWorkoutPlan
@@ -156,6 +172,9 @@ const [activeSlider, setActiveSlider] = useState(null);
           workoutId={workoutId || ""}
           isEditingPlan={isEditingPlan}
           setIsEditingPlan={setIsEditingPlan}
+          setWorkoutName={setWorkoutName}
+          setWorkoutId={setWorkoutId}
+          setIsCreatingWorkout={setIsCreatingWorkout}
         />
 
         {/* <div className="flex flex-row gap-8">
