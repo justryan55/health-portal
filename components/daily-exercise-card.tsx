@@ -228,13 +228,13 @@ export default function DailyExerciseCard({
 
   const addExercise = async () => {
     setExercises((prev) => [
-      ...(prev || []),
       {
         id: nanoid(),
         isNew: true,
         name: "Exercise",
         sets: [{ weight: "", reps: "" }],
       },
+      ...(prev || []),
     ]);
 
     setHasStoredWorkout(true);
