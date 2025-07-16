@@ -41,7 +41,7 @@ export function DatePicker({
   const getExerciseDays = async () => {
     const res = await fetchExerciseDays();
 
-    if (!res?.success) return;
+    if (!res?.success || !res.data) return;
 
     const dates = res?.data.map((item) => new Date(item.date));
 
