@@ -21,7 +21,7 @@ interface HeaderProps {
   selectedExercise: string;
   setSelectedExercise: (value: string) => void;
   selectedPeriod: number;
-  setSelectedPeriod: () => void;
+  setSelectedPeriod: (value: number) => void;
 }
 
 const timePeriods = [
@@ -73,6 +73,7 @@ export default function Header({
     };
 
     fetchExerciseBtns();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   return (
@@ -88,6 +89,7 @@ export default function Header({
       </div>
       <div className="flex flex-row gap-2">
         <select
+          aria-label="Select time period"
           value={selectedPeriod}
           onChange={(e) => setSelectedPeriod(Number(e.target.value))}
           className="appearance-none bg-gray-700 border border-gray-600 rounded-md px-4 py-2 text-sm font-medium text-white hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

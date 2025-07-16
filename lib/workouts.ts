@@ -21,6 +21,7 @@ interface WorkoutPlan {
 interface WorkoutData {
   id: string;
   name: string;
+  selected_plan: boolean;
   created_at: string;
 }
 
@@ -30,6 +31,7 @@ interface WorkoutDay {
 }
 
 interface WorkoutDayExercise {
+  exercise_library_id: string;
   id: string;
   exercise_name: string;
   sets: number | null;
@@ -41,6 +43,7 @@ interface DailyWorkout {
   id: string;
   date: string;
   user: string;
+  is_deleted: boolean;
 }
 
 interface ExerciseData {
@@ -182,7 +185,7 @@ export const fetchWeeklyPlan = async (session: Session) => {
 
     const { data: workouts, error: workoutsError } = await supabase
       .from("workouts")
-      .select("id, name, created_at")
+      .select("id, name, created_at, selected_plan")
       .eq("user_id", userId)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false });
@@ -220,11 +223,13 @@ export const fetchWeeklyPlan = async (session: Session) => {
       const workoutPlan: {
         id: string;
         name: string;
+        selected_plan: boolean;
         created_at: string;
         days: { [key: number]: WorkoutDayExercise[] };
       } = {
         id: workout.id,
         name: workout.name || `Workout Plan ${workout.id}`,
+        selected_plan: workout.selected_plan || false,
         created_at: workout.created_at,
         days: {},
       };
@@ -270,6 +275,7 @@ export const fetchDailyWorkout = async (session: Session, date: string) => {
       .select()
       .eq("date", date)
       .eq("user", userId)
+      .eq("is_deleted", false)
       .order("id", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -355,7 +361,21 @@ export const uploadExerciseToDB = async (
 
     let dailyWorkout = existingWorkout as DailyWorkout | null;
 
-    if (!dailyWorkout) {
+    if (dailyWorkout && dailyWorkout.is_deleted) {
+      const { error: restoreError, data: restoredWorkout } = await supabase
+        .from("daily_workouts")
+        .update({ is_deleted: false })
+        .eq("id", dailyWorkout.id)
+        .select()
+        .single();
+
+      if (restoreError) {
+        console.log("Restore error:", restoreError);
+        return;
+      }
+
+      dailyWorkout = restoredWorkout as DailyWorkout;
+    } else if (!dailyWorkout) {
       const { data: newWorkout, error: insertError } = await supabase
         .from("daily_workouts")
         .insert([{ date: date, user: userId }])
@@ -723,8 +743,6 @@ export const fetchExerciseStats = async (userId: string, exercise: string) => {
       })
     );
 
-    console.log(exerciseWithSets);
-
     return {
       success: true,
       data: exerciseWithSets,
@@ -745,7 +763,8 @@ export const fetchExerciseDays = async () => {
     const { data, error } = await supabase
       .from("daily_workouts")
       .select("date")
-      .eq("user", user.id);
+      .eq("user", user.id)
+      .eq("is_deleted", false);
 
     if (error) {
       return {
@@ -756,6 +775,315 @@ export const fetchExerciseDays = async () => {
     return {
       success: true,
       data,
+    };
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const toggleSelectedPlan = async (selectedPlan: string) => {
+  if (!selectedPlan) {
+    return {
+      success: false,
+    };
+  }
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const { error: resetError } = await supabase
+      .from("workouts")
+      .update({ selected_plan: false })
+      .eq("user_id", user.id);
+
+    if (resetError) {
+      return {
+        success: false,
+        message: resetError,
+      };
+    }
+
+    const { data, error: updateError } = await supabase
+      .from("workouts")
+      .update({ selected_plan: true })
+      .eq("id", selectedPlan);
+
+    if (updateError) {
+      return {
+        success: false,
+        message: updateError,
+      };
+    }
+
+    return {
+      success: true,
+      data,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: err,
+    };
+  }
+};
+
+export const fetchSessionsThisMonth = async () => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const now = new Date();
+    const startOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    ).toISOString();
+
+    const startOfNextMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      1
+    ).toISOString();
+
+    const startOfLastMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      1
+    ).toISOString();
+
+    const { data: currentMonth, error: currentMonthError } = await supabase
+      .from("daily_workouts")
+      .select()
+      .eq("user", user.id)
+      .eq("is_deleted", false)
+      .gte("date", startOfMonth)
+      .lt("date", startOfNextMonth);
+
+    if (currentMonthError) {
+      return {
+        success: false,
+        message: currentMonthError,
+      };
+    }
+
+    const { data: lastMonth, error: lastMonthError } = await supabase
+      .from("daily_workouts")
+      .select()
+      .eq("user", user.id)
+      .eq("is_deleted", false)
+      .gte("date", startOfLastMonth)
+      .lt("date", startOfMonth);
+
+    if (lastMonthError) {
+      return {
+        success: false,
+        message: lastMonthError,
+      };
+    }
+    return {
+      success: true,
+      currentMonth,
+      lastMonth,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err,
+    };
+  }
+};
+
+export const deleteWorkout = async (dateISO: string) => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("daily_workouts")
+      .update({ is_deleted: true })
+      .eq("user", user.id)
+      .eq("date", dateISO);
+
+    if (error) {
+      console.error("Error deleting workout:", error);
+      return { success: false, error };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting workout:", error);
+    return { success: false, error };
+  }
+};
+
+export const fetchWeeklyVolume = async () => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const now = new Date();
+    const day = now.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+
+    const startOfThisWeek = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + diff
+    );
+
+    const startOfNextWeek = new Date(startOfThisWeek);
+    startOfNextWeek.setDate(startOfNextWeek.getDate() + 7);
+
+    const startOfLastWeek = new Date(startOfThisWeek);
+    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+    const calculateVolumeForDateRange = async (
+      startDate: Date,
+      endDate: Date
+    ) => {
+      const { data: exerciseData, error: exerciseError } = await supabase
+        .from("exercises")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("is_deleted", false)
+        .gte("date_completed", startDate.toISOString())
+        .lt("date_completed", endDate.toISOString());
+
+      if (exerciseError || !exerciseData) {
+        console.log("Exercise fetch error:", exerciseError);
+        return 0;
+      }
+
+      const exerciseWithSets = await Promise.all(
+        exerciseData.map(async (exercise) => {
+          const { data: setsData, error: setsError } = await supabase
+            .from("sets")
+            .select("weight, reps")
+            .eq("exercise_id", exercise.id);
+
+          if (setsError || !setsData) {
+            console.log("Sets fetch error:", setsError);
+            return 0;
+          }
+
+          return setsData.reduce((acc, set) => acc + set.weight * set.reps, 0);
+        })
+      );
+
+      return exerciseWithSets.reduce((acc, volume) => acc + volume, 0);
+    };
+
+    const thisWeekVolume = await calculateVolumeForDateRange(
+      startOfThisWeek,
+      startOfNextWeek
+    );
+
+    const lastWeekVolume = await calculateVolumeForDateRange(
+      startOfLastWeek,
+      startOfThisWeek
+    );
+
+    return {
+      success: true,
+      weeklyVolume: thisWeekVolume,
+      previousWeeklyVolume: lastWeekVolume,
+    };
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const fetchWeeklyRPE = async () => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const now = new Date();
+    const day = now.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+
+    const startOfThisWeek = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + diff
+    );
+
+    const startOfNextWeek = new Date(startOfThisWeek);
+    startOfNextWeek.setDate(startOfNextWeek.getDate() + 7);
+
+    const startOfLastWeek = new Date(startOfThisWeek);
+    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+    const calculateWeeklyRPE = async (startDate: Date, endDate: Date) => {
+      const { data: exerciseData, error: exerciseError } = await supabase
+        .from("exercises")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("is_deleted", false)
+        .gte("date_completed", startDate.toISOString())
+        .lt("date_completed", endDate.toISOString());
+
+      if (exerciseError || !exerciseData) {
+        console.log("Exercise fetch error:", exerciseError);
+        return 0;
+      }
+
+      let totalRPE = 0;
+      let totalSets = 0;
+
+      for (const exercise of exerciseData) {
+        const { data: setsData, error: setsError } = await supabase
+          .from("sets")
+          .select("rpe")
+          .eq("exercise_id", exercise.id);
+
+        if (setsError || !setsData) {
+          console.log("Sets fetch error:", setsError);
+          continue;
+        }
+
+        for (const set of setsData) {
+          if (set.rpe !== null && set.rpe !== undefined) {
+            totalRPE += set.rpe;
+            totalSets++;
+          }
+        }
+      }
+
+      return totalSets === 0 ? 0 : totalRPE / totalSets;
+    };
+
+    const thisWeekRPE = await calculateWeeklyRPE(
+      startOfThisWeek,
+      startOfNextWeek
+    );
+
+    const lastWeekyRPE = await calculateWeeklyRPE(
+      startOfLastWeek,
+      startOfThisWeek
+    );
+
+    console.log(thisWeekRPE, lastWeekyRPE);
+
+    return {
+      success: true,
+      weeklyRPE: thisWeekRPE,
+      previousWeeklyRPE: lastWeekyRPE,
     };
   } catch (err) {
     console.log(err);

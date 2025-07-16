@@ -7,6 +7,7 @@ import {
   Save,
   X,
   Trash2,
+  Replace,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { nanoid } from "nanoid";
@@ -15,12 +16,20 @@ import {
   deleteExerciseFromWorkout,
   deletePlan,
   fetchWeeklyPlan,
+  toggleSelectedPlan,
   updateWorkoutPlan,
 } from "@/lib/workouts";
 import { useSupabaseSession } from "@/providers/supabase-provider";
 import { v4 as uuidv4 } from "uuid";
 import { getEmptyWorkoutPlan } from "./get-empty-workout-plan";
 import { ExerciseAutocompleteInput } from "./exercise-autocomplete-input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Exercise {
   id: string;
@@ -53,6 +62,8 @@ interface BuildWorkoutFormProps {
   >;
   day: number;
   setDay: React.Dispatch<React.SetStateAction<number>>;
+  isBuilding: boolean;
+  setIsBuilding: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface StyledWorkoutPlanProps {
@@ -75,6 +86,9 @@ interface StyledWorkoutPlanProps {
   workoutId: string;
   isEditingPlan: boolean;
   setIsEditingPlan: (value: boolean) => void;
+  setWorkoutName: (value: string) => void;
+  setWorkoutId: (value: string) => void;
+  setIsCreatingWorkout: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface BuildWorkoutExercises {
@@ -105,6 +119,9 @@ export default function StyledWorkoutPlan({
   workoutId,
   isEditingPlan,
   setIsEditingPlan,
+  setWorkoutName,
+  setWorkoutId,
+  setIsCreatingWorkout,
 }: StyledWorkoutPlanProps) {
   // const [isEditingPlan, setIsEditingPlan] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
@@ -126,6 +143,24 @@ export default function StyledWorkoutPlan({
 
   const [day, setDay] = useState(0);
 
+  interface WorkoutDayExercise {
+    exercise_library_id: string;
+    id: string;
+    exercise_name: string;
+    sets: number | null;
+    reps: number | null;
+    weight: number | null;
+  }
+
+  type SavedWorkout = {
+    id: string;
+    name: string;
+    created_at: string;
+    days: { [key: number]: WorkoutDayExercise[] };
+  };
+
+  const [savedWorkouts, setSavedWorkouts] = useState<SavedWorkout[]>([]);
+
   const getExerciseInitials = (name: string) => {
     return name
       .split(" ")
@@ -137,6 +172,7 @@ export default function StyledWorkoutPlan({
 
   const currentExercises = exercisesGroupedByDay[currentDayIndex] || [];
   const session = useSupabaseSession();
+  const [isBuilding, setIsBuilding] = useState(false);
 
   const addExerciseToPlan = (day: number) => {
     setExercisesGroupedByDay((prev) => ({
@@ -193,10 +229,6 @@ export default function StyledWorkoutPlan({
       const dayExercises = prev[currentDayIndex];
 
       if (!dayExercises) {
-        console.log(
-          "No exercises found for current day index:",
-          currentDayIndex
-        );
         return prev;
       }
       return {
@@ -257,25 +289,102 @@ export default function StyledWorkoutPlan({
   const handleDeletePlanClick = async () => {
     try {
       if (!session) return;
-      const plan = (await fetchWeeklyPlan(session)) || [];
-      const [planToBeDeleted] = plan;
 
-      if (!planToBeDeleted) return;
-
-      const data = await deletePlan(planToBeDeleted.id);
+      const data = await deletePlan(workoutId);
 
       if (data?.success) {
-        setHasStoredWorkout(false);
-        const emptyPlan = getEmptyWorkoutPlan();
+        const availablePlans = await fetchWeeklyPlan(session);
 
-        setExercisesByDay(emptyPlan.exercises);
-        setWorkoutPlan(emptyPlan);
-        setDay(0);
+        if (availablePlans && availablePlans.length > 0) {
+          const firstPlan = availablePlans[0];
+          setWorkoutId(firstPlan.id);
+          setWorkoutName(firstPlan.name);
+          setExercisesGroupedByDay(
+            Object.fromEntries(
+              Object.entries(firstPlan.days).map(([day, exercises]) => [
+                Number(day),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                exercises.map((ex: any) => ({
+                  id: ex.id,
+                  keyId: ex.keyId ?? nanoid(),
+                  exercise_name: ex.exercise_name ?? ex.exercise ?? "",
+                  sets: ex.sets ?? 0,
+                  reps: ex.reps ?? 0,
+                  weight: ex.weight ?? 0,
+                  libraryId: ex.libraryId,
+                  isNew: ex.isNew ?? false,
+                })),
+              ])
+            ) as Record<number, Exercise[]>
+          );
+          setIsEditingPlan(false);
+          setSavedWorkouts(availablePlans);
+        } else {
+          setHasStoredWorkout(false);
+          const emptyPlan = getEmptyWorkoutPlan();
+          setExercisesByDay(emptyPlan.exercises);
+          setWorkoutPlan(emptyPlan);
+          setDay(0);
+          setSavedWorkouts([]);
+        }
       }
     } catch (err) {
       console.log(err);
     }
   };
+
+  const fetchAvailablePlans = async () => {
+    try {
+      if (!session || !session.user) return;
+
+      const data = await fetchWeeklyPlan(session);
+
+      if (!data || data.length === 0) {
+        return;
+      }
+
+      setSavedWorkouts(data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const changePlan = async (e: SavedWorkout) => {
+    setWorkoutId(e.id);
+    const dailyExercises = e.days;
+    setWorkoutName(e.name);
+    setExercisesGroupedByDay(
+      Object.fromEntries(
+        Object.entries(dailyExercises).map(([day, exercises]) => [
+          Number(day),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          exercises.map((ex: any) => ({
+            id: ex.id,
+            keyId: ex.keyId ?? nanoid(),
+            exercise_name: ex.exercise_name ?? ex.exercise ?? "",
+            sets: ex.sets ?? 0,
+            reps: ex.reps ?? 0,
+            weight: ex.weight ?? 0,
+            libraryId: ex.libraryId,
+            isNew: ex.isNew ?? false,
+          })),
+        ])
+      ) as Record<number, Exercise[]>
+    );
+
+    const res = await toggleSelectedPlan(e.id);
+
+    if (!res?.success) {
+      console.log(res?.message);
+    }
+  };
+
+  useEffect(() => {
+    if (hasStoredWorkout && !isCreatingWorkout) {
+      fetchAvailablePlans();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasStoredWorkout, isCreatingWorkout, workoutId]);
 
   const isSaveDisabled = currentExercises.some((exercise) => {
     return (
@@ -308,6 +417,8 @@ export default function StyledWorkoutPlan({
         setWorkoutPlan={setWorkoutPlan}
         day={day}
         setDay={setDay}
+        isBuilding={isBuilding}
+        setIsBuilding={setIsBuilding}
       />
 
       {!isCreatingWorkout && hasStoredWorkout && (
@@ -323,7 +434,7 @@ export default function StyledWorkoutPlan({
               <p className="text-gray-300 font-medium">Weekly Workout Plan</p>
             </div>
             {!isEditingPlan ? (
-              <div className="flex gap-2 ">
+              <div className="grid grid-cols-2 gap-2 md:flex md:gap-2">
                 {/* <Button
                   onClick={() => addExerciseToPlan(currentDayIndex)}
                   className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
@@ -332,9 +443,67 @@ export default function StyledWorkoutPlan({
                   {!isMobile && <>Add Exercise</>}
                 </Button> */}
                 {/* {currentExercises.length > 0 && ( */}
+
+                <Button
+                  onClick={() => {
+                    setIsBuilding(true);
+                    setIsCreatingWorkout(true);
+                  }}
+                  className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                >
+                  <Plus className="w-4 h-4 inline" />
+                  {/* {!isMobile && <>Edit Plan</>} */}
+                  New Plan
+                </Button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    asChild
+                    onClick={() => fetchAvailablePlans()}
+                  >
+                    <Button
+                      variant="outline"
+                      className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                    >
+                      {/* {dropdownTitle} */}
+                      <Replace className="w-4 h-4 inline" />
+                      Change Plan
+                    </Button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent className="w-56">
+                    <DropdownMenuRadioGroup
+                      value={workoutId}
+                      onValueChange={(id) => {
+                        const selected = savedWorkouts.find((w) => w.id === id);
+                        if (selected) changePlan(selected);
+                      }}
+                    >
+                      {savedWorkouts.length === 0 ? (
+                        <DropdownMenuRadioItem
+                          value="no-exercises"
+                          key="no-exercises"
+                          disabled
+                        >
+                          No other plans
+                        </DropdownMenuRadioItem>
+                      ) : (
+                        savedWorkouts.map((workout) => (
+                          <DropdownMenuRadioItem
+                            key={workout.id}
+                            value={workout.id}
+                          >
+                            {workout.name}
+                          </DropdownMenuRadioItem>
+                        ))
+                      )}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <Button
                   onClick={() => setIsEditingPlan(true)}
-                  className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                  className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors col-span-2"
                 >
                   <Edit className="w-4 h-4 inline" />
                   {/* {!isMobile && <>Edit Plan</>} */}
@@ -343,13 +512,14 @@ export default function StyledWorkoutPlan({
                 {/* )} */}
               </div>
             ) : (
-              <div className="flex gap-2 ">
+              <div className="grid grid-cols-2 gap-2  lg:flex lg:gap-2">
                 <Button
                   onClick={() => handleDeletePlanClick()}
                   className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors"
                 >
                   <Trash2 className="w-4 h-4 inline" />
-                  {!isMobile && <>Delete Plan</>}
+                  {/* {!isMobile && <>Delete Plan</>} */}
+                  <>Delete Plan</>
                 </Button>
 
                 <Button
@@ -357,7 +527,8 @@ export default function StyledWorkoutPlan({
                   className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                 >
                   <Plus className="w-4 h-4 inline" />
-                  {!isMobile && <>Add Exercise</>}
+                  {/* {!isMobile && <>Add Exercise</>} */}
+                  <>Add Exercise</>
                 </Button>
                 <Button
                   disabled={isSaveDisabled}
@@ -365,14 +536,16 @@ export default function StyledWorkoutPlan({
                   className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                 >
                   <Save className="w-4 h-4 inline" />
-                  {!isMobile && <>Save Changes</>}
+                  {/* {!isMobile && <>Save Changes</>} */}
+                  <>Save Changes</>
                 </Button>
                 <Button
                   onClick={cancelEditing}
                   className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                 >
                   <X className="w-4 h-4 inline" />
-                  {!isMobile && <>Cancel</>}
+                  {/* {!isMobile && <>Cancel</>} */}
+                  <>Cancel</>
                 </Button>
               </div>
             )}

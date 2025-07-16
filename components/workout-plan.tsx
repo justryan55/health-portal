@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
-import { uploadWorkoutPlanToDB } from "@/lib/workouts";
+import { toggleSelectedPlan, uploadWorkoutPlanToDB } from "@/lib/workouts";
 import { useWorkoutContext } from "@/providers/workout-provider";
-import { Plus, ChevronRight, ChevronLeft, Save, X } from "lucide-react";
+import { Plus, ChevronRight, ChevronLeft, Save, X, Book } from "lucide-react";
 import { Input } from "./ui/input";
 import { nanoid } from "nanoid";
 import Image from "next/image";
@@ -57,9 +57,12 @@ export default function WorkoutPlan({
   setWorkoutPlan,
   day,
   setDay,
+  isBuilding,
+  setIsBuilding,
+  originalPlan,
 }: WorkoutPlanProps) {
   const { setIsCreatingWorkout } = useWorkoutContext();
-  const [isBuilding, setIsBuilding] = useState(false);
+  // const [isBuilding, setIsBuilding] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const isSaveDisabled =
     !workoutPlan.workoutName || exercisesHaveInvalidInputs();
@@ -181,13 +184,24 @@ export default function WorkoutPlan({
         ])
       ),
     };
-    console.log(sanitizedWorkoutPlan);
+
     const { data, error } = await uploadWorkoutPlanToDB(sanitizedWorkoutPlan);
 
     if (!error && data) {
       setHasStoredWorkout(true);
       setIsEditingPlan(false);
       onWorkoutSaved();
+
+      const res = await toggleSelectedPlan(data.id);
+
+      if (!res?.success) {
+        console.log(res?.message);
+      }
+
+      const emptyPlan = getEmptyWorkoutPlan();
+      setExercisesByDay(emptyPlan.exercises);
+      setWorkoutPlan(emptyPlan);
+      setDay(0);
     }
 
     setIsCreatingWorkout(false);
@@ -210,11 +224,22 @@ export default function WorkoutPlan({
   };
 
   const handleCancel = () => {
-    const emptyPlan = getEmptyWorkoutPlan();
-    setExercisesByDay(emptyPlan.exercises);
-    setWorkoutPlan(emptyPlan);
-    setDay(0);
-    setIsBuilding(false);
+    if (hasStoredWorkout) {
+      // If there's a stored workout, restore the original plan
+      // setExercisesByDay(originalPlan.exercises);
+      // setWorkoutPlan(originalPlan);
+      setDay(0);
+      setIsBuilding(false);
+      setIsCreatingWorkout(false);
+    } else {
+      // If no stored workout, reset to empty plan
+      const emptyPlan = getEmptyWorkoutPlan();
+      setExercisesByDay(emptyPlan.exercises);
+      setWorkoutPlan(emptyPlan);
+      setDay(0);
+      setIsBuilding(false);
+      setIsCreatingWorkout(false);
+    }
   };
 
   useEffect(() => {
@@ -249,9 +274,22 @@ export default function WorkoutPlan({
           <p className="text-gray-500 text-sm">
             Start your workout by adding your first exercise!
           </p>
-          <Button onClick={handleStartBuilding} variant="outline">
-            Add Workout Plan
-          </Button>
+          <div
+            className={`flex justify-center gap-2 ${isMobile && "flex-col"}`}
+          >
+            <div>
+              <Button onClick={handleStartBuilding} variant="outline">
+                <Plus className="w-4 h-4 mr-2" />
+                Build Custom Plan
+              </Button>
+            </div>
+            {/* <div>
+              <Button onClick={handleStartBuilding} variant="outline">
+                <Book className="w-4 h-4 mr-2" />
+                Select Prebuilt Plan
+              </Button>
+            </div> */}
+          </div>
         </div>
       </div>
     );
