@@ -31,6 +31,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { Capacitor } from "@capacitor/core";
 
 const data = {
   navMain: [
@@ -107,9 +108,16 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const isNative = Capacitor.isNativePlatform();
+
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
+    <Sidebar
+      className={isNative ? "native-padding" : ""}
+      collapsible="offcanvas"
+      {...props}
+    >
+      {" "}
+      <SidebarHeader className={isNative ? "native-padding" : ""}>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton

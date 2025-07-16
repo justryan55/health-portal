@@ -112,7 +112,7 @@ export default function ProfileSettings() {
                   type="number"
                   id="profile-height-cm"
                   value={profile.height.cm ?? ""}
-                  placeholder="Enter your height in cm"
+                  placeholder="cm"
                   onChange={(e) => {
                     const height =
                       e.target.value === "" ? null : Number(e.target.value);

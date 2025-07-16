@@ -133,3 +133,7 @@
   border-radius: 50%;
   background-color: #22c55e;
 }
+
+.native-padding {
+  padding-top: env(safe-area-inset-top, 24px) !important;
+}

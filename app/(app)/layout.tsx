@@ -13,6 +13,8 @@ import { DateProvider } from "@/providers/date-provider";
 import ProfileProvider from "@/providers/profile-provider";
 import { Toaster } from "sonner";
 import { supabase } from "@/lib/supabase/supabase-client";
+import Image from "next/image";
+import spinnerBlack from "@/public/spinner-black.svg";
 
 export default function RootClientWrapper({
   children,
@@ -46,7 +48,13 @@ export default function RootClientWrapper({
     };
   }, [router]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Image src={spinnerBlack} alt="loading-spinner" />
+      </div>
+    );
+
   if (!user) return null;
 
   return (
