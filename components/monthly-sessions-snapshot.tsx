@@ -13,9 +13,18 @@ import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { fetchSessionsThisMonth } from "@/lib/workouts";
 
+type SessionType = {
+  id: string;
+  user: string;
+  date: string;
+  is_deleted: boolean;
+};
+
 export default function MonthlySessionsSnapshot() {
-  const [monthlySessions, setMonthlySessions] = useState([]);
-  const [percentageChange, setPercentageChange] = useState();
+  const [monthlySessions, setMonthlySessions] = useState<SessionType[]>([]);
+  const [percentageChange, setPercentageChange] = useState<number | undefined>(
+    undefined
+  );
 
   const fetchMonthlySesssions = async () => {
     try {
@@ -26,12 +35,11 @@ export default function MonthlySessionsSnapshot() {
         return;
       }
 
-      setMonthlySessions(res?.currentMonth);
+      setMonthlySessions(res.currentMonth ?? []);
 
       const lastMonthCount = res?.lastMonth?.length || 0;
       const currentMonthCount = res?.currentMonth?.length || 0;
 
-  
       const percentage =
         lastMonthCount > 0
           ? ((currentMonthCount - lastMonthCount) / lastMonthCount) * 100
@@ -58,8 +66,14 @@ export default function MonthlySessionsSnapshot() {
         </CardTitle>
         <CardAction>
           <Badge variant="outline">
-            {percentageChange > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
-            {percentageChange}%
+            {percentageChange !== undefined && percentageChange > 0 ? (
+              <IconTrendingUp />
+            ) : (
+              <IconTrendingDown />
+            )}
+            {percentageChange !== undefined
+              ? `${percentageChange.toFixed(1)}%`
+              : "N/A"}
           </Badge>
         </CardAction>
       </CardHeader>

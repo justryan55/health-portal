@@ -3,7 +3,17 @@
 import { useProfile } from "@/providers/profile-provider";
 import { Slider } from "./ui/slider";
 
-export const DynamicSlider = ({ type, value, onChange }) => {
+type DynamicSliderProps = {
+  type: "weight" | "reps" | "rpe" | string;
+  value: number;
+  onChange: (value: number) => void;
+};
+
+export const DynamicSlider = ({
+  type,
+  value,
+  onChange,
+}: DynamicSliderProps) => {
   const { profile } = useProfile();
   const getSliderConfig = () => {
     switch (type) {
