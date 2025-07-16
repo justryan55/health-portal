@@ -3,9 +3,36 @@
 import { fetchUserProfile } from "@/lib/profile";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-const ProfileContext = createContext(null);
+interface Profile {
+  fullName: string;
+  age: string;
+  height: {
+    cm: string;
+    ft: string;
+    in: string;
+  };
+  weight: string;
+  gender: string;
+  goals: string[];
+  units: string;
+}
 
-export default function ProfileProvider({ children, initialProfile = {} }) {
+interface ProfileProviderProps {
+  children: React.ReactNode;
+  initialProfile?: Partial<Profile>;
+}
+
+interface ProfileContextType {
+  profile: Profile;
+  setProfile: React.Dispatch<React.SetStateAction<Profile>>;
+}
+
+const ProfileContext = createContext<ProfileContextType | null>(null);
+
+export default function ProfileProvider({
+  children,
+  initialProfile = {},
+}: ProfileProviderProps) {
   const [profile, setProfile] = useState({
     fullName: "",
     age: "",
@@ -27,7 +54,6 @@ export default function ProfileProvider({ children, initialProfile = {} }) {
     if (!res.success) return;
 
     const profileData = res.data;
-
 
     setProfile((prev) => ({
       ...prev,
