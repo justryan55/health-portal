@@ -21,6 +21,7 @@ import Image from "next/image";
 import { ExerciseAutocompleteInput } from "./exercise-autocomplete-input";
 import { DynamicSlider } from "../components/dynamic-slider";
 import TimerComponent from "./timer-component";
+import { toast } from "sonner";
 
 interface WorkoutSet {
   isNew?: boolean;
