@@ -60,7 +60,7 @@ export default function ProfileSettings() {
 
   return (
     <>
-      <div className="flex w-full max-w-2xl flex-col gap-6">
+      <div className="flex w-full sm:max-w-2xl flex-col gap-6">
         {/* <Tabs defaultValue="profile">
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -108,23 +108,25 @@ export default function ProfileSettings() {
             {profile.units === "metric" ? (
               <div className="grid gap-3">
                 <Label htmlFor="profile-height-cm">Height (cm)</Label>
-                <Input
-                  type="number"
-                  id="profile-height-cm"
-                  value={profile.height.cm ?? ""}
-                  placeholder="cm"
-                  onChange={(e) => {
-                    const height =
-                      e.target.value === "" ? null : Number(e.target.value);
-                    setProfile((prev: Profile) => ({
-                      ...prev,
-                      height: {
-                        ...prev.height,
-                        cm: height,
-                      },
-                    }));
-                  }}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    id="profile-height-cm"
+                    value={profile.height.cm ?? ""}
+                    placeholder="Enter your height"
+                    onChange={(e) => {
+                      const height =
+                        e.target.value === "" ? null : Number(e.target.value);
+                      setProfile((prev: Profile) => ({
+                        ...prev,
+                        height: {
+                          ...prev.height,
+                          cm: height,
+                        },
+                      }));
+                    }}
+                  />
+                </div>
               </div>
             ) : (
               <div className="grid gap-3">

@@ -145,7 +145,6 @@ export default function WorkoutPlan({
   const addRow = () => {
     const dayExercises = exercisesByDay[day] || [];
     const updatedExercises = [
-      ...dayExercises,
       {
         id: nanoid(),
         exercise: "",
@@ -154,6 +153,7 @@ export default function WorkoutPlan({
         reps: null,
         weight: null,
       },
+      ...dayExercises,
     ];
 
     setExercisesByDay({
