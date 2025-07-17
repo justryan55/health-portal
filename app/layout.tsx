@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import "./globals.css";
+import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 
 export default function RootLayout({
   children,
@@ -24,6 +25,12 @@ export default function RootLayout({
       }
     }
     setupStatusBar();
+  }, []);
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.setResizeMode({ mode: "native" as KeyboardResize });
+    }
   }, []);
 
   return (
