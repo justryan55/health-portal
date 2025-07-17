@@ -265,7 +265,10 @@ export default function DailyExerciseCard({
     const dayIndex = (date.getDay() + 6) % 7;
     const dailyExercises = weeklyExercises?.[dayIndex];
 
-    if (!dailyExercises || dailyExercises.length === 0) return;
+    if (!dailyExercises || dailyExercises.length === 0) {
+      toast.error("You have no exercises in today's plan.");
+      return;
+    }
 
     const transformed = dailyExercises.map((exercise) => ({
       id: nanoid(),
