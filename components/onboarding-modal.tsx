@@ -58,7 +58,7 @@ export function OnboardingModal() {
 
   return (
     <Dialog open={showOnboardingModal} onOpenChange={setShowOnboardingModal}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>
             {currentStep === 1 && "Getting Started"}
