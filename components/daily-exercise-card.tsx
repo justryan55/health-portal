@@ -102,9 +102,6 @@ export default function DailyExerciseCard({
 
       if (!data || data.length === 0) {
         setIsLoading(false);
-        if (!data) {
-          toast.error("Unable to fetch daily workout.");
-        }
         return setHasStoredWorkout(false);
       }
       setIsLoading(false);
