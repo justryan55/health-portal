@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, PluginListenerHandle } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import "./globals.css";
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
@@ -29,8 +29,36 @@ export default function RootLayout({
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      Keyboard.setResizeMode({ mode: "native" as KeyboardResize });
+      Keyboard.setResizeMode({ mode: "body" as KeyboardResize });
     }
+  }, []);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    let showListener: PluginListenerHandle | undefined;
+    let hideListener: PluginListenerHandle | undefined;
+    let isCancelled = false;
+
+    const addListeners = async () => {
+      if (isCancelled) return;
+
+      showListener = await Keyboard.addListener("keyboardWillShow", (info) => {
+        document.body.style.paddingBottom = `${info.keyboardHeight}px`;
+      });
+
+      hideListener = await Keyboard.addListener("keyboardWillHide", () => {
+        document.body.style.paddingBottom = "0px";
+      });
+    };
+
+    addListeners();
+
+    return () => {
+      isCancelled = true;
+      showListener?.remove();
+      hideListener?.remove();
+    };
   }, []);
 
   return (
