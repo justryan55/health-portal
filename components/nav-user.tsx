@@ -116,9 +116,7 @@ export function NavUser() {
                 <IconCreditCard />
                 Billing
               </DropdownMenuItem> */}
-              <DropdownMenuItem
-                onClick={() => handleNavigation("/settings/profile")}
-              >
+              <DropdownMenuItem onClick={() => handleNavigation("/profile")}>
                 <IconUser />
                 Profile
               </DropdownMenuItem>
