@@ -20,16 +20,25 @@ export default function RootLayout({
   useEffect(() => {
     async function setupStatusBar() {
       if (Capacitor.isNativePlatform()) {
-        await StatusBar.setOverlaysWebView({ overlay: false });
-        await StatusBar.setStyle({ style: Style.Light });
+        try {
+          await StatusBar.setOverlaysWebView({ overlay: false });
+          await StatusBar.setStyle({ style: Style.Light });
+        } catch (error) {
+          console.warn("StatusBar setup failed", error);
+        }
       }
     }
+
     setupStatusBar();
   }, []);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      Keyboard.setResizeMode({ mode: "body" as KeyboardResize });
+      try {
+        Keyboard.setResizeMode({ mode: "body" as KeyboardResize });
+      } catch (error) {
+        console.warn("Keyboard.setResizeMode not available", error);
+      }
     }
   }, []);
 
