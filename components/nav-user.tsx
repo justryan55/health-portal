@@ -41,7 +41,7 @@ export function NavUser() {
     const { error } = await supabase.auth.signOut();
 
     if (!error) {
-      redirect("/auth/login");
+      router.push("/auth/login");
     }
   };
 
