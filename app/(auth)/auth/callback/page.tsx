@@ -17,7 +17,7 @@ export default function AuthCallbackPage() {
       } = await supabase.auth.getSession();
 
       if (session) {
-        router.push("/dashboard");
+        router.push("/");
       } else {
         console.error("OAuth callback failed", error);
         router.push("/auth/login");
