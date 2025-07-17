@@ -136,7 +136,7 @@ export function LoginForm({
           return;
         }
 
-        router.push("/dashboard");
+        router.push("/");
       }
       setIsLoading(false);
     } catch (err) {
@@ -151,7 +151,7 @@ export function LoginForm({
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/`,
       },
     });
 

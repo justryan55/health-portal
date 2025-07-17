@@ -269,6 +269,7 @@ export default function DailyExerciseCard({
       toast.error("You have no exercises in today's plan.");
       return;
     }
+
     const transformed = dailyExercises.map((exercise) => ({
       id: nanoid(),
       isNew: true,
@@ -279,7 +280,7 @@ export default function DailyExerciseCard({
         reps: String(exercise.reps ?? ""),
       })),
     }));
-
+    
     setExercises((prev) => [...(prev || []), ...transformed]);
   };
 

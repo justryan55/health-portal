@@ -36,7 +36,7 @@ export function SiteHeader() {
           />
           <h1 className="text-base font-medium">{header}</h1>
         </div>
-        {pathname !== "/dashboard" && pathname !== "/progress" && (
+        {pathname !== "/" && pathname !== "/progress" && (
           <DatePicker date={date} setDate={setDate} />
         )}
       </div>
