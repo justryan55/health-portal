@@ -137,3 +137,7 @@
 .native-padding {
   padding-top: env(safe-area-inset-top, 24px) !important;
 }
+
+.native-padding-sidebar {
+  padding-top: env(safe-area-inset-top, 36px) !important;
+}

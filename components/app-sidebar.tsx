@@ -112,12 +112,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar
-      className={isNative ? "native-padding" : ""}
+      className={isNative ? "native-padding-sidebar" : ""}
       collapsible="offcanvas"
       {...props}
     >
       {" "}
-      <SidebarHeader className={isNative ? "native-padding" : ""}>
+      <SidebarHeader className={isNative ? "native-padding-sidebar" : ""}>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
