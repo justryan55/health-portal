@@ -31,7 +31,7 @@ export default function Page() {
       {/* <Card>
         <ProfileCard />
       </Card> */}
-      <Card>
+      <Card className="w-full sm:max-w-[600px]">
         <CardHeader className="flex flex-row justify-between">
           <div>
             <CardTitle>Profile</CardTitle>
