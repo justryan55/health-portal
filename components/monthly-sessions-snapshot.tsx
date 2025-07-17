@@ -81,11 +81,32 @@ export default function MonthlySessionsSnapshot() {
         </CardAction>
       </CardHeader>
       <CardFooter className="flex-col items-start gap-1.5 text-sm">
-        <div className="line-clamp-1 flex gap-2 font-medium">
+        {/* <div className="line-clamp-1 flex gap-2 font-medium">
           Avg. Time per Session: 52m
-          {/* <IconTrendingUp className="size-4" /> */}
+        </div> */}
+        <div className="line-clamp-1 flex gap-2 font-medium">
+          Sessions trending
+          {percentageChange !== undefined
+            ? percentageChange > 0
+              ? " upwards"
+              : " downwards"
+            : ""}
+          {percentageChange !== undefined ? (
+            percentageChange > 0 ? (
+              <IconTrendingUp className="size-4" />
+            ) : (
+              <IconTrendingDown className="size-4" />
+            )
+          ) : null}
         </div>
-        <div className="text-muted-foreground">Consistent training pace</div>
+
+        <div className="text-muted-foreground">
+          {percentageChange !== undefined
+            ? percentageChange > 0
+              ? "Sessions are increasing—keep it up!"
+              : "Fewer sessions this month."
+            : "Monitor your sessions over time."}
+        </div>
       </CardFooter>
     </Card>
   );

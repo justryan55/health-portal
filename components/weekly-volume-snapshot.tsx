@@ -53,7 +53,7 @@ export default function WeeklyVolumeSnapshot() {
   useEffect(() => {
     getWeeklyVolume();
   }, []);
-  
+
   return (
     <Card className="@container/card">
       <CardHeader>
@@ -91,7 +91,13 @@ export default function WeeklyVolumeSnapshot() {
           ) : null}
         </div>
 
-        <div className="text-muted-foreground">Sets × Reps × Weight</div>
+        <div className="text-muted-foreground">
+          {percentageChange !== undefined
+            ? percentageChange > 0
+              ? "Training volume is increasing—great work!"
+              : "Slight drop in volume—aim for consistency."
+            : "Tracking sets × reps × weight over time."}
+        </div>
       </CardFooter>
     </Card>
   );

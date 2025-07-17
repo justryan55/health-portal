@@ -140,10 +140,10 @@ export default function GoalsSnapshot() {
                 <li key={goal}>{goal}</li>
               ))}
               {hiddenCount > 0 && (
-                <li>
+                <li className="list-none">
                   <button
                     onClick={() => setExpanded((prev) => !prev)}
-                    className="text-muted-foreground underline underline-offset-2 hover:text-primary"
+                    className="text-muted-foreground underline underline-offset-2 hover:text-primary cursor-pointer"
                   >
                     {!expanded ? `+${hiddenCount} more` : `Show less`}
                   </button>
