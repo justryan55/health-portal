@@ -90,7 +90,11 @@ export default function AverageRPESnapshot() {
         </div>
 
         <div className="text-muted-foreground">
-          Shows average perceived exertion across workouts this week
+          {percentageChange !== undefined
+            ? percentageChange > 0
+              ? "Training feels harder this week—stay mindful."
+              : "Lower intensity—maintain consistent effort."
+            : "Tracking average perceived exertion (RPE)."}
         </div>
       </CardFooter>
     </Card>
