@@ -28,6 +28,7 @@ import spinnerBlack from "@/public/spinner-black.svg";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/supabase-client";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export function LoginForm({
   className,
@@ -345,12 +346,14 @@ export function LoginForm({
 
             <div className="mt-7 text-center text-sm">
               {formFields.footerText}{" "}
-              <a
-                href={formFields.footerAction.toLowerCase()}
+              <Link
+                href={
+                  pathname === "/auth/login" ? "/auth/register" : "/auth/login"
+                }
                 className="underline underline-offset-4"
               >
                 {formFields.footerAction}
-              </a>
+              </Link>
             </div>
           </CardContent>
         </Card>
