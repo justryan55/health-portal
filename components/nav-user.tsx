@@ -24,7 +24,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { redirect } from "next/navigation";
 import { useUser } from "@/providers/user-provider";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/supabase-client";
