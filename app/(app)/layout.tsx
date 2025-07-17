@@ -13,7 +13,7 @@ import ProfileProvider from "@/providers/profile-provider";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Forge Health Portal",
+  title: "Momentum",
 };
 
 export default async function RootLayout({
