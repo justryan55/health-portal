@@ -14,6 +14,7 @@ import {
   IconSearch,
   IconSettings,
   IconGraph,
+  IconArrowUpRight,
   // IconUsers,
 } from "@tabler/icons-react";
 
@@ -125,10 +126,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link href="/dashboard">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">
-                  Forge Health Portal
-                </span>
+                <IconArrowUpRight className="!size-5" />
+                <span className="text-base font-semibold">Momentum</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
