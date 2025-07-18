@@ -52,12 +52,14 @@ export default function AverageRPESnapshot() {
     getWeeklyRPE();
   }, []);
 
+  const roundedRPE = Math.round(averageWeeklyRPE * 2) / 2;
+
   return (
     <Card className="@container/card">
       <CardHeader>
         <CardDescription>Average Weekly RPE</CardDescription>
         <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-          {averageWeeklyRPE}
+          {roundedRPE}
         </CardTitle>
         <CardAction>
           <Badge variant="outline" className="flex items-center gap-1">
