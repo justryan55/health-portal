@@ -118,30 +118,31 @@ export default function DailyExerciseCard({
     field: "weight" | "reps" | "rpe",
     value: string | number
   ) => {
-    const numeric =
-      value === ""
-        ? undefined
-        : typeof value === "number"
-        ? value
-        : Number(value);
+    const numericValue =
+      typeof value === "string" && value === "" ? null : Number(value);
 
-    if (numeric === undefined || isNaN(numeric)) {
+    if (numericValue !== null && isNaN(numericValue)) {
       return;
     }
 
-    const result = await updateSet(set, field, numeric);
+    setExercises((prev) =>
+      (prev ?? []).map((exercise) => ({
+        ...exercise,
+        sets: exercise.sets.map((exerciseSet: WorkoutSet) =>
+          exerciseSet.setId === set.setId
+            ? { ...exerciseSet, [field]: value === "" ? "" : numericValue }
+            : exerciseSet
+        ),
+      }))
+    );
 
-    if (result) {
-      setExercises((prev) =>
-        (prev ?? []).map((exercise) => ({
-          ...exercise,
-          sets: exercise.sets.map((exerciseSet: WorkoutSet) =>
-            exerciseSet.setId === set.setId
-              ? { ...exerciseSet, [field]: numeric }
-              : exerciseSet
-          ),
-        }))
-      );
+    if (numericValue !== null) {
+      const result = await updateSet(set, field, numericValue);
+
+      if (!result.success) {
+        toast.error("Error updating set");
+        return;
+      }
     }
   };
 
@@ -325,19 +326,13 @@ export default function DailyExerciseCard({
     field: string,
     value: string
   ) => {
-    const numeric = value === "" ? undefined : Number(value);
-
-    if (numeric === undefined || isNaN(numeric)) {
-      return;
-    }
-
     setExercises((prev) =>
       (prev ?? []).map((exercise) => {
         if (exercise.id === exerciseId) {
           const updatedSets = exercise.sets.map(
             (set: WorkoutSet, index: number) => {
               if (index === setIndex) {
-                return { ...set, [field]: numeric };
+                return { ...set, [field]: value === "" ? "" : Number(value) };
               }
               return set;
             }
@@ -646,28 +641,32 @@ export default function DailyExerciseCard({
                           (isEditing.bool &&
                             isEditing.exercise.id === exercise.id) ? (
                           <div className="flex gap-2">
-                            <Button
-                              onClick={() => {
-                                if (
-                                  isAddingSet.bool &&
-                                  isAddingSet.exerciseId === exercise.id
-                                ) {
-                                  cancelNewSet(exercise);
-                                } else if (
-                                  isEditing.bool &&
-                                  isEditing.exercise.id === exercise.id
-                                ) {
-                                  setActiveSlider(null);
-                                  setIsEditing({ bool: false, exercise: {} });
-                                }
-                              }}
-                              size="sm"
-                              variant="outline"
-                              className={`${!isMobile && "ml-2"}`}
-                            >
-                              <X className={`w-4 h-4 ${!isMobile && "mr-2"}`} />
-                              {!isMobile && <span>Cancel</span>}
-                            </Button>{" "}
+                            {!isEditing.bool && (
+                              <Button
+                                onClick={() => {
+                                  if (
+                                    isAddingSet.bool &&
+                                    isAddingSet.exerciseId === exercise.id
+                                  ) {
+                                    cancelNewSet(exercise);
+                                  } else if (
+                                    isEditing.bool &&
+                                    isEditing.exercise.id === exercise.id
+                                  ) {
+                                    setActiveSlider(null);
+                                    setIsEditing({ bool: false, exercise: {} });
+                                  }
+                                }}
+                                size="sm"
+                                variant="outline"
+                                className={`${!isMobile && "ml-2"}`}
+                              >
+                                <X
+                                  className={`w-4 h-4 ${!isMobile && "mr-2"}`}
+                                />
+                                {!isMobile && <span>Cancel</span>}
+                              </Button>
+                            )}
                             <Button
                               onClick={() => {
                                 if (
@@ -689,7 +688,11 @@ export default function DailyExerciseCard({
                               <Save
                                 className={`w-4 h-4 ${!isMobile && "mr-2"}`}
                               />
-                              {!isMobile && <span>Save</span>}
+                              {!isMobile && (
+                                <span>
+                                  {isAddingSet.bool ? "Save" : "Return"}
+                                </span>
+                              )}
                             </Button>
                           </div>
                         ) : (
@@ -967,10 +970,27 @@ export default function DailyExerciseCard({
                                       placeholder="RPE"
                                       className="text-center max-w-30 bg-white"
                                       onChange={(e) => {
+                                        const rawValue = e.target.value;
+
+                                        if (rawValue === "") {
+                                          if (exercise.isNew) {
+                                            handleNewExerciseSetChange(
+                                              exercise.id,
+                                              index,
+                                              "rpe",
+                                              ""
+                                            );
+                                          } else {
+                                            handleEditInput(set, "rpe", "");
+                                          }
+                                          return;
+                                        }
+
                                         const value = Math.max(
                                           1,
-                                          Math.min(10, Number(e.target.value))
+                                          Math.min(10, Number(rawValue))
                                         );
+
                                         if (exercise.isNew) {
                                           handleNewExerciseSetChange(
                                             exercise.id,
@@ -1087,7 +1107,7 @@ export default function DailyExerciseCard({
                             </div>
                           )} */}
 
-                            {activeSlider &&
+                            {/* {activeSlider &&
                               activeSlider.exerciseId === exercise.id &&
                               activeSlider.setIndex === index && (
                                 <div className="mt-3">
@@ -1098,7 +1118,7 @@ export default function DailyExerciseCard({
                                         ? set.weight ?? 0
                                         : activeSlider.type === "reps"
                                         ? set.reps ?? 0
-                                        : set.rpe ?? ""
+                                        : set.rpe ?? 0
                                     }
                                     onChange={(newValue: number) => {
                                       if (exercise.isNew) {
@@ -1151,7 +1171,7 @@ export default function DailyExerciseCard({
                                     }}
                                   />
                                 </div>
-                              )}
+                              )} */}
                             <div className="col-span-3 flex items-center justify-center w-full">
                               {exercise.isNew && index + 1 === array.length && (
                                 <div className="flex flex-col justify-center items-center w-full mt-2">
