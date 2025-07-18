@@ -8,7 +8,6 @@ import {
   IconFileWord,
   // IconFolder,
   IconHelp,
-  IconInnerShadowTop,
   IconListDetails,
   IconReport,
   IconSearch,
