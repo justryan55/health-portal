@@ -280,7 +280,7 @@ export default function DailyExerciseCard({
         reps: String(exercise.reps ?? ""),
       })),
     }));
-    
+
     setExercises((prev) => [...(prev || []), ...transformed]);
   };
 
@@ -619,6 +619,7 @@ export default function DailyExerciseCard({
                                   isEditing.bool &&
                                   isEditing.exercise.id === exercise.id
                                 ) {
+                                  setActiveSlider(null);
                                   setIsEditing({ bool: false, exercise: {} });
                                 }
                               }}
