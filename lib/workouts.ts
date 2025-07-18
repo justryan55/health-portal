@@ -470,10 +470,14 @@ export const deleteSet = async (id: string) => {
     .eq("id", id);
 
   if (error) {
-    return error;
+    return {
+      success: false,
+      message: error,
+    };
   }
 
   return {
+    success: true,
     message: "Set deleted",
   };
 };

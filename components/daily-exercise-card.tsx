@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import { useSupabaseSession } from "@/providers/supabase-provider";
 import {
   addSet,
+  deleteSet,
   deleteWorkout,
   fetchDailyWorkout,
   fetchWeeklyPlan,
@@ -444,6 +445,43 @@ export default function DailyExerciseCard({
     setActiveSlider(null);
   };
 
+  const handleDeleteSet = async (id: string, exercise: string) => {
+    try {
+      const res = await deleteSet(id);
+
+      if (!res.success) {
+        toast.error("Error deleting set");
+        return;
+      }
+
+      setExercises((prev) =>
+        (prev ?? [])
+          .filter((ex) => {
+            if (ex.id === exercise) {
+              return ex.sets.length > 1;
+            }
+            return true;
+          })
+          .map((ex) => {
+            if (ex.id === exercise) {
+              return {
+                ...ex,
+                sets: ex.sets.filter(
+                  (set: { setId: string }) => set.setId !== id
+                ),
+              };
+            }
+            return ex;
+          })
+      );
+
+      toast("Set deleted");
+    } catch (err) {
+      toast.error("Error deleting set");
+      console.log(err);
+    }
+  };
+
   // const handleRpeChange = (
   //   newRpe: number,
   //   exercise: { id: string },
@@ -695,7 +733,13 @@ export default function DailyExerciseCard({
                     </CardHeader>
 
                     <CardContent className="space-y-3 pt-0">
-                      <div className="grid grid-cols-[0.25fr_1fr_1fr_1fr]  gap-3 text-center items-center p-3  bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors">
+                      <div
+                        className={`grid ${
+                          isEditing.bool
+                            ? "grid-cols-[0.25fr_1fr_1fr_1fr_0.25fr]"
+                            : "grid-cols-[0.25fr_1fr_1fr_1fr]"
+                        }  gap-3 text-center items-center p-3  bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors`}
+                      >
                         <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">
                           Set
                         </div>
@@ -716,7 +760,13 @@ export default function DailyExerciseCard({
                           array: WorkoutSet[]
                         ) => (
                           <div key={set.setId}>
-                            <div className="grid grid-cols-[0.25fr_1fr_1fr_1fr] gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors mb-0">
+                            <div
+                              className={`grid ${
+                                isEditing.bool
+                                  ? "grid-cols-[0.25fr_1fr_1fr_1fr_0.25fr]"
+                                  : "grid-cols-[0.25fr_1fr_1fr_1fr]"
+                              } gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors mb-0`}
+                            >
                               <div className="text-center">
                                 <div className="text-md font-bold text-gray-800">
                                   {index + 1}
@@ -850,8 +900,7 @@ export default function DailyExerciseCard({
                                   </div>
                                 ) : isAddingSet.bool &&
                                   isAddingSet.exerciseId === exercise.id &&
-                                  String(set.weight) === "" &&
-                                  String(set.reps) === "" ? (
+                                  set.isNew ? (
                                   <div className="flex justify-center">
                                     <Input
                                       type="number"
@@ -980,6 +1029,17 @@ export default function DailyExerciseCard({
                                   </div>
                                 )}
                               </div>
+                              {isEditing.bool &&
+                                isEditing.exercise.id === exercise.id && (
+                                  <div
+                                    className="flex justify-center items-center"
+                                    onClick={() => {
+                                      handleDeleteSet(set.setId, exercise.id);
+                                    }}
+                                  >
+                                    <Trash2 className="size-4" />
+                                  </div>
+                                )}
                             </div>
 
                             {/* {exercise.isNew && index + 1 === array.length && (
