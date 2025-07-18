@@ -59,7 +59,8 @@ export default function WeeklyVolumeSnapshot() {
       <CardHeader>
         <CardDescription>Avg. Weekly Volume</CardDescription>
         <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-          {weeklyVolume} {profile.units === "metric" ? "kg" : "lb"}
+          {weeklyVolume.toLocaleString()}{" "}
+          {profile.units === "metric" ? "kg" : "lb"}
         </CardTitle>
         <CardAction>
           <Badge variant="outline">

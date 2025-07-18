@@ -979,7 +979,8 @@ export const fetchWeeklyVolume = async () => {
           const { data: setsData, error: setsError } = await supabase
             .from("sets")
             .select("weight, reps")
-            .eq("exercise_id", exercise.id);
+            .eq("exercise_id", exercise.id)
+            .eq("is_deleted", false);
 
           if (setsError || !setsData) {
             console.log("Sets fetch error:", setsError);
