@@ -1107,7 +1107,7 @@ export default function DailyExerciseCard({
                             </div>
                           )} */}
 
-                            {/* {activeSlider &&
+                            {activeSlider &&
                               activeSlider.exerciseId === exercise.id &&
                               activeSlider.setIndex === index && (
                                 <div className="mt-3">
@@ -1171,7 +1171,7 @@ export default function DailyExerciseCard({
                                     }}
                                   />
                                 </div>
-                              )} */}
+                              )}
                             <div className="col-span-3 flex items-center justify-center w-full">
                               {exercise.isNew && index + 1 === array.length && (
                                 <div className="flex flex-col justify-center items-center w-full mt-2">
