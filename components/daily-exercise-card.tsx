@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import { useSupabaseSession } from "@/providers/supabase-provider";
 import {
   addSet,
+  deleteSet,
   deleteWorkout,
   fetchDailyWorkout,
   fetchWeeklyPlan,
@@ -117,30 +118,31 @@ export default function DailyExerciseCard({
     field: "weight" | "reps" | "rpe",
     value: string | number
   ) => {
-    const numeric =
-      value === ""
-        ? undefined
-        : typeof value === "number"
-        ? value
-        : Number(value);
+    const numericValue =
+      typeof value === "string" && value === "" ? null : Number(value);
 
-    if (numeric === undefined || isNaN(numeric)) {
+    if (numericValue !== null && isNaN(numericValue)) {
       return;
     }
 
-    const result = await updateSet(set, field, numeric);
+    setExercises((prev) =>
+      (prev ?? []).map((exercise) => ({
+        ...exercise,
+        sets: exercise.sets.map((exerciseSet: WorkoutSet) =>
+          exerciseSet.setId === set.setId
+            ? { ...exerciseSet, [field]: value === "" ? "" : numericValue }
+            : exerciseSet
+        ),
+      }))
+    );
 
-    if (result) {
-      setExercises((prev) =>
-        (prev ?? []).map((exercise) => ({
-          ...exercise,
-          sets: exercise.sets.map((exerciseSet: WorkoutSet) =>
-            exerciseSet.setId === set.setId
-              ? { ...exerciseSet, [field]: numeric }
-              : exerciseSet
-          ),
-        }))
-      );
+    if (numericValue !== null) {
+      const result = await updateSet(set, field, numericValue);
+
+      if (!result.success) {
+        toast.error("Error updating set");
+        return;
+      }
     }
   };
 
@@ -280,7 +282,7 @@ export default function DailyExerciseCard({
         reps: String(exercise.reps ?? ""),
       })),
     }));
-    
+
     setExercises((prev) => [...(prev || []), ...transformed]);
   };
 
@@ -324,19 +326,13 @@ export default function DailyExerciseCard({
     field: string,
     value: string
   ) => {
-    const numeric = value === "" ? undefined : Number(value);
-
-    if (numeric === undefined || isNaN(numeric)) {
-      return;
-    }
-
     setExercises((prev) =>
       (prev ?? []).map((exercise) => {
         if (exercise.id === exerciseId) {
           const updatedSets = exercise.sets.map(
             (set: WorkoutSet, index: number) => {
               if (index === setIndex) {
-                return { ...set, [field]: numeric };
+                return { ...set, [field]: value === "" ? "" : Number(value) };
               }
               return set;
             }
@@ -442,6 +438,43 @@ export default function DailyExerciseCard({
   const handleSaveEdit = () => {
     setIsEditing({ bool: false, exercise: {} });
     setActiveSlider(null);
+  };
+
+  const handleDeleteSet = async (id: string, exercise: string) => {
+    try {
+      const res = await deleteSet(id);
+
+      if (!res.success) {
+        toast.error("Error deleting set");
+        return;
+      }
+
+      setExercises((prev) =>
+        (prev ?? [])
+          .filter((ex) => {
+            if (ex.id === exercise) {
+              return ex.sets.length > 1;
+            }
+            return true;
+          })
+          .map((ex) => {
+            if (ex.id === exercise) {
+              return {
+                ...ex,
+                sets: ex.sets.filter(
+                  (set: { setId: string }) => set.setId !== id
+                ),
+              };
+            }
+            return ex;
+          })
+      );
+
+      toast("Set deleted");
+    } catch (err) {
+      toast.error("Error deleting set");
+      console.log(err);
+    }
   };
 
   // const handleRpeChange = (
@@ -608,27 +641,32 @@ export default function DailyExerciseCard({
                           (isEditing.bool &&
                             isEditing.exercise.id === exercise.id) ? (
                           <div className="flex gap-2">
-                            <Button
-                              onClick={() => {
-                                if (
-                                  isAddingSet.bool &&
-                                  isAddingSet.exerciseId === exercise.id
-                                ) {
-                                  cancelNewSet(exercise);
-                                } else if (
-                                  isEditing.bool &&
-                                  isEditing.exercise.id === exercise.id
-                                ) {
-                                  setIsEditing({ bool: false, exercise: {} });
-                                }
-                              }}
-                              size="sm"
-                              variant="outline"
-                              className={`${!isMobile && "ml-2"}`}
-                            >
-                              <X className={`w-4 h-4 ${!isMobile && "mr-2"}`} />
-                              {!isMobile && <span>Cancel</span>}
-                            </Button>{" "}
+                            {!isEditing.bool && (
+                              <Button
+                                onClick={() => {
+                                  if (
+                                    isAddingSet.bool &&
+                                    isAddingSet.exerciseId === exercise.id
+                                  ) {
+                                    cancelNewSet(exercise);
+                                  } else if (
+                                    isEditing.bool &&
+                                    isEditing.exercise.id === exercise.id
+                                  ) {
+                                    setActiveSlider(null);
+                                    setIsEditing({ bool: false, exercise: {} });
+                                  }
+                                }}
+                                size="sm"
+                                variant="outline"
+                                className={`${!isMobile && "ml-2"}`}
+                              >
+                                <X
+                                  className={`w-4 h-4 ${!isMobile && "mr-2"}`}
+                                />
+                                {!isMobile && <span>Cancel</span>}
+                              </Button>
+                            )}
                             <Button
                               onClick={() => {
                                 if (
@@ -650,7 +688,11 @@ export default function DailyExerciseCard({
                               <Save
                                 className={`w-4 h-4 ${!isMobile && "mr-2"}`}
                               />
-                              {!isMobile && <span>Save</span>}
+                              {!isMobile && (
+                                <span>
+                                  {isAddingSet.bool ? "Save" : "Return"}
+                                </span>
+                              )}
                             </Button>
                           </div>
                         ) : (
@@ -694,7 +736,13 @@ export default function DailyExerciseCard({
                     </CardHeader>
 
                     <CardContent className="space-y-3 pt-0">
-                      <div className="grid grid-cols-[0.25fr_1fr_1fr_1fr]  gap-3 text-center items-center p-3  bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors">
+                      <div
+                        className={`grid ${
+                          isEditing.bool
+                            ? "grid-cols-[0.25fr_1fr_1fr_1fr_0.25fr]"
+                            : "grid-cols-[0.25fr_1fr_1fr_1fr]"
+                        }  gap-3 text-center items-center p-3  bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors`}
+                      >
                         <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">
                           Set
                         </div>
@@ -715,7 +763,13 @@ export default function DailyExerciseCard({
                           array: WorkoutSet[]
                         ) => (
                           <div key={set.setId}>
-                            <div className="grid grid-cols-[0.25fr_1fr_1fr_1fr] gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors mb-0">
+                            <div
+                              className={`grid ${
+                                isEditing.bool
+                                  ? "grid-cols-[0.25fr_1fr_1fr_1fr_0.25fr]"
+                                  : "grid-cols-[0.25fr_1fr_1fr_1fr]"
+                              } gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors mb-0`}
+                            >
                               <div className="text-center">
                                 <div className="text-md font-bold text-gray-800">
                                   {index + 1}
@@ -849,8 +903,7 @@ export default function DailyExerciseCard({
                                   </div>
                                 ) : isAddingSet.bool &&
                                   isAddingSet.exerciseId === exercise.id &&
-                                  String(set.weight) === "" &&
-                                  String(set.reps) === "" ? (
+                                  set.isNew ? (
                                   <div className="flex justify-center">
                                     <Input
                                       type="number"
@@ -917,10 +970,27 @@ export default function DailyExerciseCard({
                                       placeholder="RPE"
                                       className="text-center max-w-30 bg-white"
                                       onChange={(e) => {
+                                        const rawValue = e.target.value;
+
+                                        if (rawValue === "") {
+                                          if (exercise.isNew) {
+                                            handleNewExerciseSetChange(
+                                              exercise.id,
+                                              index,
+                                              "rpe",
+                                              ""
+                                            );
+                                          } else {
+                                            handleEditInput(set, "rpe", "");
+                                          }
+                                          return;
+                                        }
+
                                         const value = Math.max(
                                           1,
-                                          Math.min(10, Number(e.target.value))
+                                          Math.min(10, Number(rawValue))
                                         );
+
                                         if (exercise.isNew) {
                                           handleNewExerciseSetChange(
                                             exercise.id,
@@ -979,6 +1049,17 @@ export default function DailyExerciseCard({
                                   </div>
                                 )}
                               </div>
+                              {isEditing.bool &&
+                                isEditing.exercise.id === exercise.id && (
+                                  <div
+                                    className="flex justify-center items-center"
+                                    onClick={() => {
+                                      handleDeleteSet(set.setId, exercise.id);
+                                    }}
+                                  >
+                                    <Trash2 className="size-4" />
+                                  </div>
+                                )}
                             </div>
 
                             {/* {exercise.isNew && index + 1 === array.length && (
@@ -1037,7 +1118,7 @@ export default function DailyExerciseCard({
                                         ? set.weight ?? 0
                                         : activeSlider.type === "reps"
                                         ? set.reps ?? 0
-                                        : set.rpe ?? ""
+                                        : set.rpe ?? 0
                                     }
                                     onChange={(newValue: number) => {
                                       if (exercise.isNew) {
